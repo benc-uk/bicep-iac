@@ -1,0 +1,4 @@
+{
+  // Fixes syntax hightling bug
+  "editor.semanticHighlighting.enabled": true
+}
