@@ -1,15 +1,27 @@
+//
+// Deploy a multi node RKE2 cluster on Azure
+//
+
 targetScope = 'subscription'
 
-param resGroupName string = 'rke2-test08'
-param location string = 'uksouth'
+param resGroupName string
+param location string
+// Suffix is a string appended to all resource names
 param suffix string = 'rke2' //-${substring(uniqueString(resGroupName), 0, 4)}'
 
-param authString string = 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA1iR5NeXJd/+zpVHtgj//PY1znXgnMOhWYQOkxQj+4WsR18ptqT2gkS0wZOPVg0UEycz0DIssznzSK4QyJZtAVbMZasu21G+XdAnfdFqzAqr4QFEyGqZViLIE+yUHvfOcwrEtEenCCWHFSbmuUSsORyyol81P4rms9MdXoBNj4DaDOKa10fPziWCjC3Cprs7VaHcETIOgf//FN5t5qMrzwmW4cCpql3vzyr0FugdSOwv3yaQiylw1ayi6czJyRoIhPgpohSG5WigvEC5gFjhO43MFtD6tMu3EGzqzs7YyiFhRQI44dvHDCLHP/fJRN/w4IgQHH3jMlYwfHafed4JIVQ== rsa-key-20160706'
+// Password or SSH key to connect to the servers & agent node VMs
+param authString string
+// Use SSH key or password
+param authType string = 'sshPublicKey'
+// Number of agent node VMs to deploy
 param agentCount int = 1
+// VM sizes
 param serverVMSize string = 'Standard_D16s_v4'
 param agentVMSize string = 'Standard_D16s_v4'
-param rke2Token string = newGuid()
+// Token used for agents to join the cluster
+param rke2Token string = uniqueString(resGroupName, suffix)
 
+// Constant GUID for contributor role
 var contributorRoleGUID = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -70,7 +82,7 @@ module server '../modules/vm/linux.bicep' = {
     name: 'server'
     subnetId: network.outputs.subnetId
     adminPasswordOrKey: authString
-    authenticationType: 'sshPublicKey'
+    authenticationType: authType
     customData: serverConfig.outputs.customDataString
     size: serverVMSize
     userIdentityResourceId: vmIdentity.outputs.resourceId
@@ -92,7 +104,7 @@ module agent '../modules/vm/linux.bicep' = [for i in range(0, agentCount): {
   }
 }]
 
-module roles '../modules/identity/roles.bicep' = {
+module roles '../modules/identity/res-group-role.bicep' = {
   scope: resGroup
   // This is NOT actually dependant on the server but Azure AD is so awful and slow
   // we need a delay after creating the identity before assigning the role

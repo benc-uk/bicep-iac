@@ -1,3 +1,7 @@
+// ==================================================================================
+// Module for RKE2 server cloudConfig
+// ==================================================================================
+
 @description('Version of RKE2 to use, if blank latest will be installed')
 param version string = ''
 
@@ -7,14 +11,33 @@ param token string
 @description('Server hostname for TLS-SAN')
 param serverHost string
 
+@description('Azure tenant ID')
 param tenantId string
+
+@description('Client ID of user identity')
 param clientId string
+
+@description('Azure subscription ID')
 param subscriptionId string
+
+@description('Resource group RKE2 has been deployed to')
 param resourceGroup string
+
+@description('Region for Azure all RKE2 resources')
 param region string
+
+@description('Name of the subnet the RKE2 server and agents are using')
 param subnetName string
+
+@description('NSG name attached to the subnet')
 param nsgName string
+
+@description('Name of the VNet the RKE2 server and agents are using')
 param vnetName string
+
+// ==================================================================================
+// Variables
+// ==================================================================================
 
 var cloudConfig = '''
 #cloud-config
@@ -61,7 +84,7 @@ write_files:
         "securityGroupResourceGroup": "{6}",
         "vnetName": "{10}",
         "vnetResourceGroup": "{6}",
-        "routeTableName": "rke2-routes",
+        "routeTableName": "rke2",
         "cloudProviderBackoff": false,
         "useManagedIdentityExtension": true,
         "useInstanceMetadata": true,
@@ -69,6 +92,26 @@ write_files:
         "excludeMasterFromStandardLB": false
       }}
     path: /etc/rancher/rke2/azure.json
+    owner: root:root
+
+  - content: |
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          storageclass.beta.kubernetes.io/is-default-class: "true"
+        labels:
+          kubernetes.io/cluster-service: "true"
+        name: default
+      parameters:
+        cachingmode: ReadOnly
+        kind: Managed
+        storageaccounttype: StandardSSD_LRS
+      provisioner: kubernetes.io/azure-disk
+      reclaimPolicy: Delete
+      volumeBindingMode: Immediate
+      allowVolumeExpansion: true
+    path: /var/lib/rancher/rke2/server/manifests/default-storageclass.yaml
     owner: root:root
 
 runcmd:
@@ -86,4 +129,5 @@ runcmd:
   - [ chmod, a+rw, /etc/rancher/rke2/rke2.yaml ]
 '''
 
+// Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
 output customDataString string = format(cloudConfig, version, token, serverHost, tenantId, clientId, subscriptionId, resourceGroup, region, subnetName, nsgName, vnetName)

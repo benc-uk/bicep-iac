@@ -1,13 +1,17 @@
+//
+// Deploy AKS with CNI and monitoring
+//
+
 targetScope = 'subscription'
 
-param resGroupName string = 'aks-bicep.temp'
+param resGroupName string
 param location string = 'northeurope'
 param suffix string = 'test-${substring(uniqueString(resGroupName), 0, 4)}'
 
 param enableMonitoring bool = true
 
 param kube object = {
-  version: '1.19.7'
+  version: '1.20.7'
   nodeSize: 'Standard_DS2_v2'
   nodeCount: 2
   nodeCountMax: 10
@@ -18,16 +22,19 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2020-06-01' = {
   location: location  
 }
 
-module network 'modules/network.bicep' = {
+module network '../modules/network/network.bicep' = {
   scope: resGroup
   name: 'network'
   params: {
     location: location
     suffix: suffix
+    openPorts: [
+      '0'
+    ]
   }
 }
 
-module other 'modules/monitoring.bicep' = if(enableMonitoring) {
+module other '../modules/monitoring/log-analytics.bicep' = if(enableMonitoring) {
   scope: resGroup
   name: 'monitors'
   params: {
@@ -36,7 +43,7 @@ module other 'modules/monitoring.bicep' = if(enableMonitoring) {
   }
 }
 
-module aks 'modules/aks.bicep' = {
+module aks '../modules/kubernetes/aks.bicep' = {
   scope: resGroup
   name: 'aks'
   params: {
@@ -47,13 +54,12 @@ module aks 'modules/aks.bicep' = {
 
     // Network details
     netVnet: network.outputs.vnetName
-    netSubnet: network.outputs.aksSubnetName
+    netSubnet: network.outputs.subnetName
     
     // Optional features
     logsWorkspaceId: enableMonitoring ? other.outputs.logWorkspaceId : ''
   }
 }
-
 
 output clusterName string = aks.outputs.clusterName
 output clusterFQDN string = aks.outputs.clusterFQDN

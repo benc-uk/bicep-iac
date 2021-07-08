@@ -1,3 +1,7 @@
+// ==================================================================================
+// Module for RKE2 agent cloudConfig
+// ==================================================================================
+
 @description('Version of RKE2 to use, if blank latest will be installed')
 param version string = ''
 
@@ -6,6 +10,10 @@ param token string
 
 @description('Hostname or IP of server or server loadbalancer if using HA')
 param serverHost string
+
+// ==================================================================================
+// Variables
+// ==================================================================================
 
 var cloudConfig = '''
 #cloud-config
@@ -43,4 +51,5 @@ runcmd:
   - [ sysctl, -p, /etc/sysctl.d/10-vm-map-count.conf ]
 '''
 
+// Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
 output customDataString string = format(cloudConfig, version, serverHost, token)
