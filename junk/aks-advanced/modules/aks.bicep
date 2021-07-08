@@ -3,13 +3,16 @@ param location string
 
 param netVnet string
 param netSubnet string
+param netSubnetVnodes string = ''
 param logsWorkspaceId string = ''
 
-param kube object = {
-  version: '1.19.7'
-  nodeSize: 'Standard_DS2_v2'
-  nodeCount: 1
-  nodeCountMax: 10
+param kube object {
+  default: {
+    version: '1.19.7'
+    nodeSize: 'Standard_DS2_v2'
+    nodeCount: 1
+    nodeCountMax: 10
+  }  
 }
 
 var addOns = {
@@ -18,6 +21,14 @@ var addOns = {
     enabled: true
     config: {
       logAnalyticsWorkspaceResourceID: logsWorkspaceId
+    }
+  } : {}
+
+  // Enable Vnodes add on, only if netSubnetVnodes is set
+  aciConnectorLinux: netSubnetVnodes != '' ? {
+    enabled: true
+    config: {
+      SubnetName: netSubnetVnodes
     }
   } : {}
 }

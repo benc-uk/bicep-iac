@@ -4,13 +4,16 @@ param resGroupName string = 'aks-bicep.temp'
 param location string = 'northeurope'
 param suffix string = 'test-${substring(uniqueString(resGroupName), 0, 4)}'
 
+param enableVnodes bool = true
 param enableMonitoring bool = true
 
-param kube object = {
-  version: '1.19.7'
-  nodeSize: 'Standard_DS2_v2'
-  nodeCount: 2
-  nodeCountMax: 10
+param kube object {
+  default: {
+    version: '1.19.7'
+    nodeSize: 'Standard_DS2_v2'
+    nodeCount: 2
+    nodeCountMax: 10
+  }
 }
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2020-06-01' = {
@@ -24,6 +27,7 @@ module network 'modules/network.bicep' = {
   params: {
     location: location
     suffix: suffix
+    enableVnodes: enableVnodes
   }
 }
 
@@ -50,11 +54,29 @@ module aks 'modules/aks.bicep' = {
     netSubnet: network.outputs.aksSubnetName
     
     // Optional features
+    netSubnetVnodes: enableVnodes ? network.outputs.vodesSubnetName : ''
     logsWorkspaceId: enableMonitoring ? other.outputs.logWorkspaceId : ''
   }
 }
 
+module identity 'modules/identity.bicep' = if(enableVnodes) {
+  scope: resourceGroup('MC_${resGroupName}_aks-${suffix}_${location}')
+  name: 'identity'
+  params: {
+    aksName: aks.outputs.clusterName
+  }
+}
+
+module roles 'modules/roles.bicep' = if(enableVnodes) {
+  scope: resGroup
+  name: 'roles'
+  params: {
+    suffix: suffix
+    principalId: enableVnodes ? identity.outputs.vnodesPrincipalId : ''
+  }
+}
 
 output clusterName string = aks.outputs.clusterName
 output clusterFQDN string = aks.outputs.clusterFQDN
 output aksState string = aks.outputs.provisioningState
+output vnodesPrincipalId string = enableVnodes ? identity.outputs.vnodesPrincipalId : 'not enabled'
