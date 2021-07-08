@@ -1,6 +1,6 @@
-//
+// ============================================================================
 // Deploy a multi node RKE2 cluster on Azure
-//
+// ============================================================================
 
 targetScope = 'subscription'
 
@@ -12,17 +12,24 @@ param suffix string = 'rke2' //-${substring(uniqueString(resGroupName), 0, 4)}'
 // Password or SSH key to connect to the servers & agent node VMs
 param authString string
 // Use SSH key or password
-param authType string = 'sshPublicKey'
+param authType string = 'publicKey'
 // Number of agent node VMs to deploy
-param agentCount int = 1
+param agentCount int = 2
 // VM sizes
 param serverVMSize string = 'Standard_D16s_v4'
 param agentVMSize string = 'Standard_D16s_v4'
-// Token used for agents to join the cluster
-param rke2Token string = uniqueString(resGroupName, suffix)
+
+// Assign public IPs and use public Azure LB
+param public bool = true
+
+// ===== Variables ============================================================
 
 // Constant GUID for contributor role
 var contributorRoleGUID = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+// Token used for agents to join the cluster
+var rke2Token = uniqueString(resGroupName, suffix)
+
+// ===== Modules & Resources ==================================================
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: resGroupName
@@ -86,6 +93,7 @@ module server '../modules/vm/linux.bicep' = {
     customData: serverConfig.outputs.customDataString
     size: serverVMSize
     userIdentityResourceId: vmIdentity.outputs.resourceId
+    publicIp: public
   }
 }
 
@@ -98,9 +106,10 @@ module agent '../modules/vm/linux.bicep' = [for i in range(0, agentCount): {
     name: 'agent${i}'
     subnetId: network.outputs.subnetId
     adminPasswordOrKey: authString
-    authenticationType: 'sshPublicKey'
+    authenticationType: authType
     customData: agentConfig.outputs.customDataString
     size: agentVMSize
+    publicIp: public
   }
 }]
 
