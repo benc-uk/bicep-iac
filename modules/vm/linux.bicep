@@ -30,10 +30,10 @@ param adminUser string = 'azureuser'
 
 @description('Type of authentication to use on the Virtual Machine. SSH key is recommended.')
 @allowed([
-  'sshPublicKey'
+  'publicKey'
   'password'
 ])
-param authenticationType string = 'sshPublicKey'
+param authenticationType string = 'publicKey'
 
 @description('SSH Key or password for the Virtual Machine. SSH key is recommended.')
 @secure()
