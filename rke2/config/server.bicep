@@ -41,10 +41,7 @@ param serverHostPublic string = 'dummy.local'
 @description('The cloud environment identifier')
 param cloudName string = 'AzurePublicCloud'
 
-
-// ==================================================================================
-// Variables
-// ==================================================================================
+// ===== Variables ============================================================
 
 var cloudConfig = '''
 #cloud-config
