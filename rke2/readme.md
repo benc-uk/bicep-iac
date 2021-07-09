@@ -11,7 +11,7 @@ Deploys a RKE2 cluster to Azure on Ubuntu 20.04, this currently uses
 
 Run from the rke2 directory, i.e. `cd rke2`
 
-Using your SSH key as a means to login to the server & agent nodes
+Using your SSH key as a means to login to the server node
 
 ```bash
 az deployment sub create --template-file main.bicep \
@@ -65,9 +65,9 @@ kubectl get no
 | suffix       | Resource name suffix appended to all resources | `rke2`             | string |
 | authString   | Password or SSH public key                     | NONE               | string |
 | authType     | Either `publicKey` or `password`               | `publicKey`        | string |
-| agentCount   | Number of agent nodes                          | 2                  | int    |
-| serverVMSize | VM size for server node(s)                     | `Standard_D16s_v4` | string |
-| agentVMSize  | VM size for agent node(s)                      | `Standard_D16s_v4` | string |
+| agentCount   | Number of agent nodes                          | 1                  | int    |
+| serverVMSize | VM size for server node(s)                     | `Standard_D8s_v4`  | string |
+| agentVMSize  | VM size for agent node(s)                      | `Standard_D8s_v4`  | string |
 
 ## Outputs
 
