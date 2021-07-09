@@ -11,6 +11,9 @@ param token string
 @description('Hostname or IP of server or server loadbalancer if using HA')
 param serverHost string
 
+@description('Region for Azure all RKE2 resources')
+param region string
+
 // ==================================================================================
 // Variables
 // ==================================================================================
@@ -35,6 +38,7 @@ write_files:
   - content: |
       server: https://{1}:9345
       token: {2}
+      node-label: ["failure-domain.beta.kubernetes.io/region={3}"]
     path: /etc/rancher/rke2/config.yaml
     owner: root:root
 
@@ -52,4 +56,4 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output cloudInit string = format(cloudConfig, version, serverHost, token)
+output cloudInit string = format(cloudConfig, version, serverHost, token, region)

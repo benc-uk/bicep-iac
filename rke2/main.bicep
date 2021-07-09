@@ -14,10 +14,16 @@ param authString string
 // Use SSH key or password
 param authType string = 'publicKey'
 // Number of agent node VMs to deploy
-param agentCount int = 1
+param agentCount int = 3
 // VM sizes
-param serverVMSize string = 'Standard_D8_v4'
-param agentVMSize string = 'Standard_D8_v4'
+param serverVMSize string = 'Standard_D8_v3'
+param agentVMSize string = 'Standard_D8_v3'
+
+@allowed([
+  'AzurePublic'
+  'AzureUSGovernmentCloud'
+])
+param cloudName string = 'AzurePublic'
 
 // ===== Variables ============================================================
 
@@ -27,6 +33,8 @@ var contributorRoleGUID = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
 var rke2Token = uniqueString(resGroupName, suffix)
 // Used to give the server a public FQDN
 var dnsSuffix = substring(uniqueString(resGroup.name), 0, 4)
+// Different domain for different clouds
+var pipDomain = (cloudName == 'AzureUSGovernmentCloud' ? 'usgovcloudapi.net' : 'azure.com')
 
 // ===== Modules & Resources ==================================================
 
@@ -71,7 +79,8 @@ module serverConfig 'config/server.bicep' = {
     vnetName: suffix
     nsgName: suffix
     subnetName: 'default'
-    serverHostPublic: 'server-rke2-${dnsSuffix}.${location}.cloudapp.azure.com'
+    serverHostPublic: 'server-rke2-${dnsSuffix}.${location}.cloudapp.${pipDomain}'
+    cloudName: cloudName
   }
 }
 
@@ -81,6 +90,7 @@ module agentConfig 'config/agent.bicep' = {
   params: {
     token: rke2Token
     serverHost: 'server-rke2'
+    region: location
   }
 }
 

@@ -38,6 +38,10 @@ param vnetName string
 @description('External IP or FQDN of the server')
 param serverHostPublic string = 'dummy.local'
 
+@description('The cloud environment identifier')
+param cloudName string = 'AzurePublicCloud'
+
+
 // ==================================================================================
 // Variables
 // ==================================================================================
@@ -72,12 +76,14 @@ write_files:
         - {11}
       cloud-provider-name: azure
       cloud-provider-config: /etc/rancher/rke2/azure.json
+      node-taint:
+        - "CriticalAddonsOnly=true:NoExecute"
     path: /etc/rancher/rke2/config.yaml
     owner: root:root
 
   - content: |
       {{
-        "cloud": "AzurePublicCloud",
+        "cloud": "{12}",
         "tenantId": "{3}",
         "userAssignedIdentityID": "{4}",
         "subscriptionId": "{5}",
@@ -135,4 +141,4 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output cloudInit string = format(cloudConfig, version, token, serverHost, tenantId, clientId, subscriptionId, resourceGroup, region, subnetName, nsgName, vnetName, serverHostPublic)
+output cloudInit string = format(cloudConfig, version, token, serverHost, tenantId, clientId, subscriptionId, resourceGroup, region, subnetName, nsgName, vnetName, serverHostPublic, cloudName)

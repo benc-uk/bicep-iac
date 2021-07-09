@@ -1,11 +1,14 @@
 # RKE2 Bicep Template
 
-Deploys a RKE2 cluster to Azure on Ubuntu 20.04, this currently uses
+Deploys a RKE2 cluster to Azure on Ubuntu 20.04
 
 - Multiple agent nodes
 - Automatic configuration of the [Azure Cloud Provider](https://kubernetes-sigs.github.io/cloud-provider-azure/) using in-tree provider
 - Sets up default storage class for Azure
-- Configuring Linux kernel parameters
+- Taints the server nodes
+- Sets TLS-SAN to external hostname so api-server can be accessed remotely
+- Labels agent nodes correctlt so PVCs etc can be mounted
+- Configuring Linux kernel parameters (vm.max_map_count=262144)
 
 ## Quick Deploy
 
@@ -30,6 +33,17 @@ az deployment sub create --template-file main.bicep \
   location="uksouth" \
   authType="password" \
   authString="Password@123!"
+```
+
+Deploy into a Azure Gov Cloud
+
+```bash
+az deployment sub create --template-file main.bicep \
+--location usdodcentral \
+--parameters resGroupName=rke2-gov \
+  location="usdodcentral" \
+  cloudName="AzureUSGovernmentCloud" \
+  authString="$(cat ~/.ssh/id_rsa.pub)"
 ```
 
 ## Connecting to RKE2 Cluster
@@ -58,16 +72,17 @@ kubectl get no
 
 ## Parameters
 
-| Name         | Purpose                                        | Default            | Type   |
-| ------------ | ---------------------------------------------- | ------------------ | ------ |
-| resGroupName | Resource group to deploy to, will be created   | NONE               | string |
-| location     | Azure region to use                            | NONE               | string |
-| suffix       | Resource name suffix appended to all resources | `rke2`             | string |
-| authString   | Password or SSH public key                     | NONE               | string |
-| authType     | Either `publicKey` or `password`               | `publicKey`        | string |
-| agentCount   | Number of agent nodes                          | 1                  | int    |
-| serverVMSize | VM size for server node(s)                     | `Standard_D8s_v4`  | string |
-| agentVMSize  | VM size for agent node(s)                      | `Standard_D8s_v4`  | string |
+| Name         | Purpose                                                  | Default          | Type   |
+| ------------ | -------------------------------------------------------- | ---------------- | ------ |
+| resGroupName | Resource group to deploy to, will be created             | NONE             | string |
+| location     | Azure region to use                                      | NONE             | string |
+| suffix       | Resource name suffix appended to all resources           | `rke2`           | string |
+| authString   | Password or SSH public key                               | NONE             | string |
+| authType     | Either `publicKey` or `password`                         | `publicKey`      | string |
+| agentCount   | Number of agent nodes                                    | 3                | int    |
+| serverVMSize | VM size for server node(s)                               | `Standard_D8_v3` | string |
+| agentVMSize  | VM size for agent node(s)                                | `Standard_D8_v3` | string |
+| cloudName    | Azure cloud to use; AzureUSGovernmentCloud or AzurePublic | `AzurePublic`    | string |
 
 ## Outputs
 
