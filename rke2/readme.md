@@ -6,6 +6,7 @@ Deploys a RKE2 cluster to Azure on Ubuntu 20.04
 - Automatic configuration of the [Azure Cloud Provider](https://kubernetes-sigs.github.io/cloud-provider-azure/) using in-tree provider
 - Sets up default storage class for Azure
 - Taints the server nodes
+- Works in Azure Public and Azure US Government 
 - Sets TLS-SAN to external hostname so api-server can be accessed remotely
 - Labels agent nodes correctlt so PVCs etc can be mounted
 - Configuring Linux kernel parameters (vm.max_map_count=262144)
