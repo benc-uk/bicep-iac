@@ -52,4 +52,4 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output customDataString string = format(cloudConfig, version, serverHost, token)
+output cloudInit string = format(cloudConfig, version, serverHost, token)

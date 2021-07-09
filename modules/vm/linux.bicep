@@ -39,21 +39,21 @@ param authenticationType string = 'publicKey'
 @secure()
 param adminPasswordOrKey string
 
-@description('Custom data to load into cloud-init process.')
-param customData string = '''
+@description('Cloud init config string to load into VM custom data')
+param cloudInit string = '''
 #cloud-config
-#
-#
 '''
 
 @description('Create a public IP or not')
 param publicIp bool = true
 
+@description('Resource ID of user managed identity or set to blank emtpy string')
 param userIdentityResourceId string = ''
 
-// ==================================================================================
-// Variables
-// ==================================================================================
+@description('Used to give the VM a unique FQDN')
+param dnsSuffix string = substring(uniqueString(resourceGroup().name), 0, 4)
+
+// ===== Variables ============================================================
 
 var sshConfig = {
   disablePasswordAuthentication: true
@@ -77,9 +77,8 @@ var identityConfig = {
     '${userIdentityResourceId}' :{}
   }
 }
-// ==================================================================================
-// Resources 
-// ==================================================================================
+
+// ===== Modules & Resources ==================================================
 
 resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   location: location
@@ -93,14 +92,14 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
            subnet: {
             id: subnetId
            }
-           publicIPAddress: ((publicIp == true) ? pipConfig : null)
+           publicIPAddress: publicIp ? pipConfig : null
          }
       }
     ]
   }
 }
 
-resource pip 'Microsoft.Network/publicIPAddresses@2021-02-01' = if(publicIp == true) {
+resource pip 'Microsoft.Network/publicIPAddresses@2020-11-01' = if(publicIp) {
   location: location
   name: '${name}-${suffix}'
   sku: {
@@ -108,7 +107,10 @@ resource pip 'Microsoft.Network/publicIPAddresses@2021-02-01' = if(publicIp == t
   }
 
   properties: {
-    publicIPAllocationMethod:'Static'
+    publicIPAllocationMethod: 'Static'
+    dnsSettings: {
+      domainNameLabel: '${name}-${suffix}-${dnsSuffix}'
+    }
   }
 }
 
@@ -146,7 +148,10 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
       adminUsername: adminUser
       adminPassword: adminPasswordOrKey
       linuxConfiguration: ((authenticationType == 'password') ? null : sshConfig)
-      customData: base64(customData)
+      customData: base64(cloudInit)
     }
   }
 }
+
+output publicIP string = (publicIp ? pip.properties.ipAddress : 'none') 
+output dnsName string = (publicIp ? pip.properties.dnsSettings.fqdn : 'none')

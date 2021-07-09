@@ -35,6 +35,9 @@ param nsgName string
 @description('Name of the VNet the RKE2 server and agents are using')
 param vnetName string
 
+@description('External IP or FQDN of the server')
+param serverHostPublic string = 'dummy.local'
+
 // ==================================================================================
 // Variables
 // ==================================================================================
@@ -64,7 +67,9 @@ write_files:
 
   - content: |
       token: {1}
-      tls-san: {2}
+      tls-san: 
+        - {2}
+        - {11}
       cloud-provider-name: azure
       cloud-provider-config: /etc/rancher/rke2/azure.json
     path: /etc/rancher/rke2/config.yaml
@@ -130,4 +135,4 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output customDataString string = format(cloudConfig, version, token, serverHost, tenantId, clientId, subscriptionId, resourceGroup, region, subnetName, nsgName, vnetName)
+output cloudInit string = format(cloudConfig, version, token, serverHost, tenantId, clientId, subscriptionId, resourceGroup, region, subnetName, nsgName, vnetName, serverHostPublic)
