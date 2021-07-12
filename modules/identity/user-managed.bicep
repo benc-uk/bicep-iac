@@ -1,8 +1,9 @@
 param suffix string
+param prefix string = 'umi-'
 param location string 
 
 resource vmIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
-  name: suffix
+  name: '${prefix}${suffix}'
   location: location
 }
 

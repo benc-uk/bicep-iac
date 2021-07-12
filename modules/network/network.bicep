@@ -1,11 +1,12 @@
 param suffix string
+param prefix string = 'vnet-'
 param location string 
 
 param addressSpace string = '10.0.0.0/8'
 param subnetCidr string = '10.100.0.0/24'
 
-var subnetName = 'default'
-var vnetName = suffix
+param subnetName string = 'default'
+var vnetName = '${prefix}${suffix}'
 
 param openPorts array = [
   '22'

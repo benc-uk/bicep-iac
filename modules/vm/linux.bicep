@@ -3,13 +3,11 @@
 // ==================================================================================
 
 param suffix string
+param prefix string = 'vm-'
 param location string 
 
 @description('Subnet to place the VM into')
 param subnetId string
-
-@description('Name prefix for VM, suffix will be appended')
-param name string = 'vm'
 
 @description('Username for the Virtual Machine admin.')
 param size string = 'Standard_B2s'
@@ -82,7 +80,7 @@ var identityConfig = {
 
 resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   location: location
-  name: '${name}-${suffix}'
+  name: '${prefix}${suffix}'
 
   properties: {
     ipConfigurations: [
@@ -101,7 +99,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
 
 resource pip 'Microsoft.Network/publicIPAddresses@2020-11-01' = if(publicIp) {
   location: location
-  name: '${name}-${suffix}'
+  name: '${prefix}${suffix}'
   sku: {
     name: 'Standard'
   }
@@ -109,14 +107,14 @@ resource pip 'Microsoft.Network/publicIPAddresses@2020-11-01' = if(publicIp) {
   properties: {
     publicIPAllocationMethod: 'Static'
     dnsSettings: {
-      domainNameLabel: '${name}-${suffix}-${dnsSuffix}'
+      domainNameLabel: '${prefix}${suffix}-${dnsSuffix}'
     }
   }
 }
 
 resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   location: location
-  name: '${name}-${suffix}'
+  name: '${prefix}${suffix}'
 
   identity: ((userIdentityResourceId == '') ? null : identityConfig)
 
@@ -144,7 +142,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
     }
 
     osProfile: {
-      computerName: '${name}-${suffix}'
+      computerName: '${prefix}${suffix}'
       adminUsername: adminUser
       adminPassword: adminPasswordOrKey
       linuxConfiguration: ((authenticationType == 'password') ? null : sshConfig)

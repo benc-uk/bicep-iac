@@ -36,7 +36,7 @@ var rke2Token = uniqueString(resGroupName, suffix)
 var dnsSuffix = substring(uniqueString(resGroup.name), 0, 4)
 // Different domain for different clouds
 var pipDomain = (cloudName == 'AzureUSGovernmentCloud' ? 'usgovcloudapi.net' : 'azure.com')
-// Name for server, will get suffixed
+// Name prefix for server VM, will get suffixed
 var serverName = 'server'
 
 // ===== Modules & Resources ==================================================
@@ -52,6 +52,7 @@ module network '../modules/network/network.bicep' = {
   params: {
     location: location
     suffix: suffix
+    prefix: ''
     openPorts: [ 
       '22'
       '6443'
@@ -65,6 +66,7 @@ module vmIdentity '../modules/identity/user-managed.bicep' = {
   params: {
     location: location
     suffix: suffix
+    prefix: ''
   }
 }
 
@@ -111,7 +113,7 @@ module server '../modules/vm/linux.bicep' = {
   params: {
     location: location
     suffix: suffix
-    name: serverName
+    prefix: '${serverName}-'
     subnetId: network.outputs.subnetId
     adminPasswordOrKey: authString
     authenticationType: authType
@@ -129,7 +131,7 @@ module agent '../modules/vm/linux.bicep' = [for i in range(0, agentCount): {
   params: {
     location: location
     suffix: suffix
-    name: 'agent${i}'
+    prefix: 'agent${i}-'
     subnetId: network.outputs.subnetId
     adminPasswordOrKey: authString
     authenticationType: authType
@@ -139,7 +141,7 @@ module agent '../modules/vm/linux.bicep' = [for i in range(0, agentCount): {
   }
 }]
 
-module roles '../modules/identity/res-group-role.bicep' = {
+module roles '../modules/identity/role-assign-sub.bicep' = {
   scope: resGroup
   // This is NOT actually dependant on these but Azure AD is so awful and slow
   // we need a delay after creating the identity before assigning the role

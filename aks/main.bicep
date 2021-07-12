@@ -10,7 +10,7 @@ param suffix string = 'test-${substring(uniqueString(resGroupName), 0, 4)}'
 
 param enableMonitoring bool = true
 
-param kube object = {
+param cluster object = {
   version: '1.20.7'
   nodeSize: 'Standard_DS2_v2'
   nodeCount: 2
@@ -50,7 +50,7 @@ module aks '../modules/kubernetes/aks.bicep' = {
     location: location
     suffix: suffix
     // Base AKS config like version and nodes sizes
-    kube: kube
+    cluster: cluster
 
     // Network details
     netVnet: network.outputs.vnetName

@@ -1,11 +1,12 @@
 param suffix string
+param prefix string = 'aks-'
 param location string 
 
 param netVnet string
 param netSubnet string
 param logsWorkspaceId string = ''
 
-param kube object = {
+param cluster object = {
   version: '1.19.7'
   nodeSize: 'Standard_DS2_v2'
   nodeCount: 1
@@ -23,7 +24,7 @@ var addOns = {
 }
 
 resource aks 'Microsoft.ContainerService/managedClusters@2020-12-01' = {
-  name: 'aks-${suffix}'
+  name: '${prefix}${suffix}'
   location: location
   
   identity: {
@@ -31,18 +32,18 @@ resource aks 'Microsoft.ContainerService/managedClusters@2020-12-01' = {
   }
 
   properties: {
-    dnsPrefix: 'aks-${suffix}'
-    kubernetesVersion: kube.version
+    dnsPrefix: '${prefix}${suffix}'
+    kubernetesVersion: cluster.version
     agentPoolProfiles: [
       {
         name: 'default'
         mode: 'System'
         vnetSubnetID: resourceId('Microsoft.Network/virtualNetworks/subnets', netVnet, netSubnet)
-        vmSize: kube.nodeSize
+        vmSize: cluster.nodeSize
         enableAutoScaling: true
-        count: kube.nodeCount
-        minCount: kube.nodeCount
-        maxCount: kube.nodeCountMax
+        count: cluster.nodeCount
+        minCount: cluster.nodeCount
+        maxCount: cluster.nodeCountMax
       }
     ]
     

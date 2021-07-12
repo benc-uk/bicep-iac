@@ -40,6 +40,7 @@ param cloudName string = 'AzurePublicCloud'
 
 // ===== Variables ============================================================
 
+
 var cloudConfig = '''
 #cloud-config
 package_update: true
