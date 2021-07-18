@@ -51,6 +51,12 @@ param userIdentityResourceId string = ''
 @description('Used to give the VM a unique FQDN')
 param dnsSuffix string = substring(uniqueString(resourceGroup().name), 0, 4)
 
+@description('Assign this public IP, set publicIp to false')
+param existingPipId string = ''
+
+@description('Assign to a load balancer backend pool')
+param loadBalancerBackendPoolId string = ''
+
 // ===== Variables ============================================================
 
 var sshConfig = {
@@ -66,7 +72,7 @@ var sshConfig = {
 }
 
 var pipConfig = {
-  id: pip.id
+  id: existingPipId != '' ? existingPipId : pip.id
 }
 
 var identityConfig = {
@@ -74,6 +80,10 @@ var identityConfig = {
   userAssignedIdentities: {
     '${userIdentityResourceId}' :{}
   }
+}
+
+var loadBalancerPoolConfig = {
+  id: loadBalancerBackendPoolId
 }
 
 // ===== Modules & Resources ==================================================
@@ -87,10 +97,13 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
       {
          name: 'ipconfig1'
          properties: {
-           subnet: {
-            id: subnetId
-           }
-           publicIPAddress: publicIp ? pipConfig : null
+            subnet: {
+              id: subnetId
+            }
+            publicIPAddress: publicIp || existingPipId != '' ? pipConfig : null
+            loadBalancerBackendAddressPools: loadBalancerBackendPoolId != '' ?  [ 
+              loadBalancerPoolConfig 
+            ] : []
          }
       }
     ]

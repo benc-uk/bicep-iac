@@ -53,6 +53,17 @@ module network '../modules/network/network.bicep' = {
     location: location
     suffix: suffix
     prefix: ''
+    nsgId: subnetNsg.outputs.nsgId
+  }
+}
+
+module subnetNsg '../modules/network/nsg.bicep' = {
+  scope: resGroup
+  name: 'subnetNsg'
+  params: {
+    location: location
+    suffix: suffix
+    prefix: ''
     openPorts: [ 
       '22'
       '6443'
