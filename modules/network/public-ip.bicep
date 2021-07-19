@@ -1,13 +1,8 @@
-param suffix string
-param prefix string = 'pip-'
-param location string 
+param name string = resourceGroup().name
+param location string = resourceGroup().location
 param sku string = 'Standard'
 param allocation string = 'Static'
-param dnsSuffix string = substring(uniqueString(resourceGroup().name), 0, 4)
-
-// ===== Variables ============================================================
-
-var name = '${prefix}${suffix}'
+param dnsSuffix string = substring(uniqueString(resourceGroup().name), 0, 5)
 
 // ===== Modules & Resources ==================================================
 
@@ -21,7 +16,7 @@ resource pip 'Microsoft.Network/publicIPAddresses@2020-11-01' = {
   properties: {
     publicIPAllocationMethod: allocation
     dnsSettings: {
-      domainNameLabel: '${prefix}${suffix}-${dnsSuffix}'
+      domainNameLabel: '${name}-${dnsSuffix}'
     }
   }
 }

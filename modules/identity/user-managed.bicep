@@ -1,9 +1,8 @@
-param suffix string
-param prefix string = 'umi-'
-param location string 
+param name string = resourceGroup().name
+param location string = resourceGroup().location 
 
 resource vmIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
-  name: '${prefix}${suffix}'
+  name: name
   location: location
 }
 

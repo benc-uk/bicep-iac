@@ -1,18 +1,27 @@
-param suffix string
-param prefix string = 'kv-'
-param location string 
+param name string = resourceGroup().name
+param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
+param location string = resourceGroup().location
 
 param sku string = 'standard'
 param objectIdsWithAccess array
+param secrets array
 
 // ===== Variables ============================================================
 
-var name = '${prefix}${suffix}'
+// Append suffix
+var resourceName = '${name}${suffix}'
+// HACK: To workaround bug Bicep https://github.com/Azure/bicep/issues/1754
+var secretsArray = concat(secrets, [
+  {
+    name: 'ignore'
+    value: guid(resourceName)
+  }
+])
 
 // ===== Modules & Resources ==================================================
 
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: name
+  name: resourceName
   location: location 
   properties: {
     tenantId: subscription().tenantId
@@ -33,3 +42,13 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }]
   }
 }
+
+resource addSecrets 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = [for secret in secretsArray: {
+  name: secret.name
+  parent: keyVault
+  properties: {
+    value: secret.value
+  }
+}]
+
+output resourceName string = resourceName

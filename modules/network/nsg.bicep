@@ -1,12 +1,7 @@
-param suffix string
-param prefix string = 'vnet-'
-param location string 
+param name string = resourceGroup().name
+param location string = resourceGroup().location
 param openPorts array = []
 param sourceAddress string = '*'
-
-// ===== Variables ============================================================
-
-var name = '${prefix}${suffix}'
 
 // ===== Modules & Resources ==================================================
 

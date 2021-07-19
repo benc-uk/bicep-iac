@@ -1,6 +1,5 @@
-param suffix string
-param prefix string = 'aks-'
-param location string 
+param name string = resourceGroup().name
+param location string = resourceGroup().location 
 
 param netVnet string
 param netSubnet string
@@ -24,7 +23,7 @@ var addOns = {
 }
 
 resource aks 'Microsoft.ContainerService/managedClusters@2020-12-01' = {
-  name: '${prefix}${suffix}'
+  name: name
   location: location
   
   identity: {
@@ -32,7 +31,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2020-12-01' = {
   }
 
   properties: {
-    dnsPrefix: '${prefix}${suffix}'
+    dnsPrefix: name
     kubernetesVersion: cluster.version
     agentPoolProfiles: [
       {

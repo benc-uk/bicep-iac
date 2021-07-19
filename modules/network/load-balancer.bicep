@@ -1,16 +1,21 @@
-param suffix string
-param prefix string = 'lb-'
-param location string 
+param name string = resourceGroup().name
+param location string = resourceGroup().location
 
 param sku string = 'Standard'
+
+// Must supply one of these, BUT DO NOT SUPPLY BOTH
 param publicIpId string = ''
+param subnetId string = ''
+
 param port int 
 
 // ===== Variables ============================================================
 
-var name = '${prefix}${suffix}'
 var publicIpConfig = {
   id: publicIpId
+}
+var subnetConfig = {
+  id: subnetId
 }
 
 // ===== Modules & Resources ==================================================
@@ -28,6 +33,7 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-02-01' = {
         name: 'frontend'
         properties: {
           publicIPAddress: publicIpId != '' ? publicIpConfig : null
+          subnet: subnetId != '' ? subnetConfig : null
         }
       }
     ]
@@ -72,4 +78,6 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-02-01' = {
   }
 }
 
+// Frontend IP is either private if subnetId is provided, otherwise assume public
+output frontendIp string = subnetId != '' ? loadBalancer.properties.frontendIPConfigurations[0].properties.privateIPAddress : reference(publicIpId, '2020-11-01').ipAddress
 output backendPoolId string = loadBalancer.properties.backendAddressPools[0].id

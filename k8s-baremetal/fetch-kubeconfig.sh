@@ -8,9 +8,10 @@ fi
 DEPLOYMENT_NAME=${1:-"main"}
 
 CLUSTER_IP=$(az deployment sub show --name "$DEPLOYMENT_NAME" --query "properties.outputs.controlPlaneIp.value" -o tsv)
+echo "Checking cluster API is accepting traffic"
 nc -z $CLUSTER_IP 6443 -w 5
 if [ $? -ne 0 ]; then
-  echo "Cluster is not ready. Exiting..."
+  echo "Cluster API is not ready. Exiting..."
   return 1
 fi
 

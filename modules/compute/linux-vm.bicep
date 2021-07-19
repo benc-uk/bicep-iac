@@ -1,18 +1,17 @@
 // ==================================================================================
-// Module for deploying a Linux VM
+// Module for deploying a standalone Linux VM
 // ==================================================================================
 
-param suffix string
-param prefix string = 'vm-'
-param location string 
+param name string = resourceGroup().name
+param location string = resourceGroup().location
 
 @description('Subnet to place the VM into')
 param subnetId string
 
-@description('Username for the Virtual Machine admin.')
+@description('VM size')
 param size string = 'Standard_B2s'
 
-@description('Username for the Virtual Machine admin.')
+@description('Disk type for OS disk')
 param osDiskType string = 'Standard_LRS'
 
 @description('Image to be deployed')
@@ -42,14 +41,14 @@ param cloudInit string = '''
 #cloud-config
 '''
 
-@description('Create a public IP or not')
+@description('Create a new public IP or not')
 param publicIp bool = true
 
 @description('Resource ID of user managed identity or set to blank emtpy string')
 param userIdentityResourceId string = ''
 
 @description('Used to give the VM a unique FQDN')
-param dnsSuffix string = substring(uniqueString(resourceGroup().name), 0, 4)
+param dnsSuffix string = substring(uniqueString(resourceGroup().name), 0, 5)
 
 @description('Assign this public IP, set publicIp to false')
 param existingPipId string = ''
@@ -90,7 +89,7 @@ var loadBalancerPoolConfig = {
 
 resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   location: location
-  name: '${prefix}${suffix}'
+  name: name
 
   properties: {
     ipConfigurations: [
@@ -112,7 +111,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
 
 resource pip 'Microsoft.Network/publicIPAddresses@2020-11-01' = if(publicIp) {
   location: location
-  name: '${prefix}${suffix}'
+  name: name
   sku: {
     name: 'Standard'
   }
@@ -120,14 +119,14 @@ resource pip 'Microsoft.Network/publicIPAddresses@2020-11-01' = if(publicIp) {
   properties: {
     publicIPAllocationMethod: 'Static'
     dnsSettings: {
-      domainNameLabel: '${prefix}${suffix}-${dnsSuffix}'
+      domainNameLabel: '${name}-${dnsSuffix}'
     }
   }
 }
 
 resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   location: location
-  name: '${prefix}${suffix}'
+  name: name
 
   identity: ((userIdentityResourceId == '') ? null : identityConfig)
 
@@ -138,7 +137,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
 
     storageProfile: {
       osDisk: {
-        createOption:'FromImage'
+        createOption: 'FromImage'
         managedDisk: {
           storageAccountType: osDiskType
         }
@@ -155,7 +154,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
     }
 
     osProfile: {
-      computerName: '${prefix}${suffix}'
+      computerName: name
       adminUsername: adminUser
       adminPassword: adminPasswordOrKey
       linuxConfiguration: ((authenticationType == 'password') ? null : sshConfig)

@@ -1,5 +1,13 @@
 #!/bin/bash
-      if [[ "$(hostname)" == "cp0" ]]; then 
+      source /root/lib-keyvault.sh
+
+      # See if firstNode secret exists, to do a crude leader election
+      getKeyVaultSecret {3} firstNode > /dev/null 2>&1
+
+      if [[ $? -ne 0 ]]; then
+        echo "Detected this is the first node in cluster, running kubeadm init"
+        putKeyVaultSecret {3} firstNode "$(hostname)"
+
         # Initialize the cluster as the first CP node
         kubeadm init --pod-network-cidr=10.244.0.0/16 --token-ttl=20m --token={1} --control-plane-endpoint {0}:6443 --upload-certs --certificate-key={2}
         
@@ -17,6 +25,9 @@
         putKeyVaultSecretFromFile {3} kubeconfig /etc/kubernetes/admin.conf
         exit
       fi
+
+      echo "Joining cluster as an additional control plane node"
+
       # Wait for control plane to be ready
       /root/wait-cp-ready.sh {0}
       sleep 10      

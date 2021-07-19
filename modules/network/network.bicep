@@ -1,6 +1,5 @@
-param suffix string
-param prefix string = 'vnet-'
-param location string 
+param name string = resourceGroup().name
+param location string = resourceGroup().location
 
 param addressSpace string = '10.0.0.0/8'
 param subnetCidr string = '10.100.0.0/24'
@@ -9,8 +8,6 @@ param subnetName string = 'default'
 param nsgId string = ''
 
 // ===== Variables ============================================================
-
-var name = '${prefix}${suffix}'
 
 var nsgConfig = {
   id: nsgId
