@@ -1,4 +1,5 @@
 #!/bin/bash
+      echo "Waiting for control plane API to be available..."
       # Waits up to 5 mins for control plane to be ready on port 6443
       host=$1
       port=6443

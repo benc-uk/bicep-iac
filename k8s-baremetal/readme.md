@@ -7,8 +7,6 @@ This is a Bicep template to deploy a baremetal Kubernetes cluster to Azure deplo
 ```bash
 az deployment sub create --template-file main.bicep \
   --location "uksouth" \
-  --parameters location="uksouth" \
-  resGroupName="my-k8s-cluster" \
-  authString="$(cat ~/.ssh/id_rsa.pub)" \
+  --parameters clusterName="my-k8s-cluster" \
   keyVaultAccessObjectId="$(az ad signed-in-user show --query 'objectId' -o tsv)"
 ```

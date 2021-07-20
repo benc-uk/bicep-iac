@@ -9,21 +9,12 @@ param clusterName string
 // Azure region for all resources
 param location string = deployment().location
 
-// SSH key to connect to the servers must override when authType is 'publicKey'
-param sshPublicKey string = '__PUBLIC_KEY__'
-// Use SSH key or password
-@allowed([
-  'publicKey'
-  'password'
-])
-param authType string = 'password'
-
 // Cluster configuration
 param kubernetesVersion string = '1.21.3'
 param controlPlaneCount int = 3
 param workerCount int = 3
 param workerVmSize string = 'Standard_B1ms'
-param controlPlaneVmSize string = 'Standard_B4ms'
+param controlPlaneVmSize string = 'Standard_D4_v4' //'Standard_B4ms'
 
 // Give access to this user / object id to the secrets in the key vault
 // - e.g. keyVaultAccessObjectId="$(az ad signed-in-user show --query 'objectId' -o tsv)"
@@ -32,11 +23,17 @@ param keyVaultAccessObjectId string = ''
 // Setting to false currently not supported due to lack of control plane egress
 param publicCluster bool = true
 
+// Deploy a SSH jumpbox, only do this for troubleshooting purposes
+param deployJumpBox bool = true
+// SSH key to connect to the jumpbox, if unset password auth will be used and clusterVMPassword
+param jumpBoxPublicKey string = ''
+
+
 // ===== Variables ============================================================
 
 var bootStrapToken = 'abcdef.0123456789abcdef'
 var certKey = '7cae2a25e84e01cb4a6583c7cfbb1df89b6f5c23974c2b9adc6a45ac1821cec3'
-var vmPassword = '${uniqueString(clusterName)}!P${uniqueString(subscription().tenantId)}Z'
+var clusterVMPassword = '${uniqueString(clusterName)}!P${uniqueString(subscription().tenantId)}Z'
 
 // ===== Modules & Resources ==================================================
 
@@ -98,7 +95,7 @@ module keyVault '../modules/misc/keyvault.bicep' = {
     secrets: [
       {
         name: 'nodePassword'
-        value: vmPassword
+        value: clusterVMPassword
       }
     ]
   }
@@ -113,6 +110,7 @@ module controlPlaneCloudInit './cloudinit/control-plane.bicep' = {
     bootStrapToken: bootStrapToken
     certKey: certKey
     keyVaultName: keyVault.outputs.resourceName
+    clientId: clusterIdentity.outputs.clientId
   }
 }
 
@@ -123,6 +121,7 @@ module workerCloudInit './cloudinit/workers.bicep' = {
     kubernetesVersion: kubernetesVersion
     controlPlaneExternalHost: controlPlaneLoadBalancer.outputs.frontendIp
     bootStrapToken: bootStrapToken
+    clientId: clusterIdentity.outputs.clientId
   }
 }
 
@@ -137,8 +136,8 @@ module controlPlane '../modules/compute/linux-vmss.bicep' = {
   params: {
     name: 'ctrl-plane'
     subnetId: network.outputs.subnetId
-    adminPasswordOrKey: authType == 'ssh' ? sshPublicKey : vmPassword
-    authenticationType: authType
+    adminPasswordOrKey: clusterVMPassword
+    authenticationType: 'password'
     cloudInit: controlPlaneCloudInit.outputs.cloudInit
     size: controlPlaneVmSize
     loadBalancerBackendPoolId: controlPlaneLoadBalancer.outputs.backendPoolId
@@ -154,8 +153,8 @@ module workers '../modules/compute/linux-vmss.bicep' = {
   params: {
     name: 'worker'
     subnetId: network.outputs.subnetId
-    adminPasswordOrKey: authType == 'ssh' ? sshPublicKey : vmPassword
-    authenticationType: authType
+    adminPasswordOrKey: clusterVMPassword
+    authenticationType: 'password'
     cloudInit: workerCloudInit.outputs.cloudInit
     size: workerVmSize
     userIdentityResourceId: clusterIdentity.outputs.resourceId
@@ -163,6 +162,37 @@ module workers '../modules/compute/linux-vmss.bicep' = {
   }
 }
 
+module jumpBox '../modules/compute/linux-vm.bicep' = if(deployJumpBox) {
+  scope: resGroup
+  name: 'jumpBox'
+
+  params: {
+    name: 'jumpbox'
+    subnetId: network.outputs.subnetId
+    adminPasswordOrKey: jumpBoxPublicKey != '' ? jumpBoxPublicKey : clusterVMPassword
+    publicIp: true
+    authenticationType: jumpBoxPublicKey != '' ? 'publicKey' : 'password'
+    size: 'Standard_B1ms'
+  }
+}
+
+module roles '../modules/identity/role-assign-sub.bicep' = {
+  scope: resGroup
+  // This is NOT actually dependant on these but Azure AD is so awful and slow
+  // we need a delay after creating the identity before assigning the role
+  dependsOn: [ 
+    controlPlane
+    clusterIdentity
+  ]
+  name: 'roles'
+  params: {
+    principalId: clusterIdentity.outputs.principalId
+    // Contributor role
+    roleId: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+  }
+}
+
 output controlPlaneIp string = controlPlaneLoadBalancer.outputs.frontendIp
 output controlPlaneFqdn string = publicCluster ? controlPlaneIp.outputs.fqdn : 'none'
 output keyVaultName string = keyVault.outputs.resourceName
+output jumpBoxIpAddress string = deployJumpBox ? jumpBox.outputs.publicIP : 'none'
