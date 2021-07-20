@@ -22,10 +22,10 @@
         kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml 
         # Add default storage class for Azure
         kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /root/default-sc.yaml
+        # Add metrics server
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /root/metrics-server.yaml
         
-        # Make kubeconfig available to other users
-        cp /etc/kubernetes/admin.conf /home/azureuser/admin.conf
-        chmod a+rw /home/azureuser/admin.conf
+        # Upload the admin kubeconfig to the KeyVault 
         source /root/lib-keyvault.sh
         putKeyVaultSecretFromFile {1} kubeconfig /etc/kubernetes/admin.conf
         exit

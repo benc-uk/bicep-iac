@@ -26,6 +26,7 @@ var keyVaultLibScript = loadTextContent('scripts/lib-keyvault.sh')
 var kubeadmConf = format(loadTextContent('other/kubeadm.conf'), bootStrapToken, certKey, controlPlaneExternalHost)
 var cloudConf = format(loadTextContent('other/cloud.conf'), tenantId, clientId, subscriptionId, clusterName, location)
 var defaultStorageClass = loadTextContent('other/default-sc.yaml')
+var metricsServer = loadTextContent('other/metrics-server.yaml')
 
 var cloudConfig = '''
 #cloud-config
@@ -62,7 +63,10 @@ write_files:
     path: /root/kubeadm.conf
   - content: | 
       {7}
-    path: /root/default-sc.yaml          
+    path: /root/default-sc.yaml
+  - content: | 
+      {8}
+    path: /root/metrics-server.yaml    
   - content: | 
       export KUBECONFIG=/etc/kubernetes/admin.conf
       alias k='kubectl'
@@ -77,4 +81,4 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, controlPlaneScript, keyVaultLibScript, cloudConf, kubeadmConf, defaultStorageClass)
+output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, controlPlaneScript, keyVaultLibScript, cloudConf, kubeadmConf, defaultStorageClass, metricsServer)

@@ -6,11 +6,16 @@ param subnetCidr string = '10.100.0.0/24'
 
 param subnetName string = 'default'
 param nsgId string = ''
+param natGatewayId string = ''
 
 // ===== Variables ============================================================
 
 var nsgConfig = {
   id: nsgId
+}
+
+var natGatewayConfig = {
+  id: natGatewayId
 }
 
 // ===== Modules & Resources ==================================================
@@ -32,6 +37,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
         properties: {
           addressPrefix: subnetCidr
           networkSecurityGroup: nsgId != '' ? nsgConfig : null
+          natGateway: natGatewayId != '' ? natGatewayConfig : null
         }
       }
     ]

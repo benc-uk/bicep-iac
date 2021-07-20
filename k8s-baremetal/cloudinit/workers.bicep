@@ -52,7 +52,7 @@ write_files:
       {4}
     path: /root/kubeadm.conf
   - content: | 
-      {4}
+      {5}
     path: /etc/kubernetes/cloud.conf
 
 runcmd:
@@ -62,4 +62,4 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, nodeJoinScript, cloudConf)
+output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, nodeJoinScript, kubeadmConf, cloudConf)

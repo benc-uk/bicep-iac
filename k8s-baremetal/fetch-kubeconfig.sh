@@ -1,30 +1,33 @@
 #!/bin/bash
 
 if [[ "$0" = "$BASH_SOURCE" ]]; then
-  echo "Please source this script. Do not execute."
+  echo "💥 Error - Please source this script. Do not execute."
   exit 1
 fi
 
 DEPLOYMENT_NAME=${1:-"main"}
 
+echo "📚 Will use Azure deployment name: $DEPLOYMENT_NAME"
 CLUSTER_IP=$(az deployment sub show --name "$DEPLOYMENT_NAME" --query "properties.outputs.controlPlaneIp.value" -o tsv)
-echo "Checking cluster API is accepting traffic"
+echo "🌐 Checking cluster API is accepting traffic"
 nc -z $CLUSTER_IP 6443 -w 5
 if [ $? -ne 0 ]; then
-  echo "Cluster API is not ready. Exiting..."
+  echo "💥 Error - Cluster API is not ready. Exiting..."
   return 1
 fi
 
 KV_NAME=$(az deployment sub show --name "$DEPLOYMENT_NAME" --query "properties.outputs.keyVaultName.value" -o tsv)
+echo "🔍 Discovered KeyVault name from deployment: $KV_NAME"
 FILE=$(realpath azure.kubeconfig)
 
 [[ $KV_NAME ]] || { echo "Failed to get KeyVault name. Exiting."; exit 1; }
 
-echo "Fetching kubeconfig from KeyVault $KV_NAME"
+echo "📜 Fetching kubeconfig from KeyVault $KV_NAME"
 az keyvault secret show --name kubeconfig --vault-name $KV_NAME > /dev/null
 
 if [ $? -eq 0 ]; then
   az keyvault secret show --name kubeconfig --vault-name $KV_NAME | jq -e -r '.value' > $FILE
-  echo "Download successful. Setting KUBECONFIG to $FILE"
+  echo "🧰 Download successful. Setting KUBECONFIG to $FILE"
+  echo "🤓 Now run kubectl as normal, e.g. kubectl get nodes"
   export KUBECONFIG=$FILE
 fi

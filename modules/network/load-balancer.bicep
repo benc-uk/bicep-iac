@@ -8,6 +8,7 @@ param publicIpId string = ''
 param subnetId string = ''
 
 param port int 
+param enableFloatingIP bool = true
 
 // ===== Variables ============================================================
 
@@ -45,6 +46,7 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-02-01' = {
           frontendPort: port
           backendPort: port
           protocol: 'Tcp'
+          enableFloatingIP: enableFloatingIP
           frontendIPConfiguration: {
             id: resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', name, 'frontend')
           }

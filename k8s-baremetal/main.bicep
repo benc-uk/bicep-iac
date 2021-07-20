@@ -4,35 +4,45 @@
 
 targetScope = 'subscription'
 
-// Name used for resource group, and base name for most resources
+@description('Name used for resource group, and base name for most resources')
 param clusterName string
-// Azure region for all resources
+@description('Azure region for all resources')
 param location string = deployment().location
 
 // Cluster configuration
+@description('Version of Kubernetes to deploy x.yy.z')
 param kubernetesVersion string = '1.21.3'
-param controlPlaneCount int = 3
+@description('Number of nodes in the control plane, should be a odd number')
+param controlPlaneCount int = 1
+@description('Number of worker/agent nodes')
 param workerCount int = 3
-param workerVmSize string = 'Standard_B1ms'
-param controlPlaneVmSize string = 'Standard_D4_v4' //'Standard_B4ms'
+@description('Azure VM instance size for the worker nodes')
+param workerVmSize string = 'Standard_B2s'
+@description('Azure VM instance size for the control plane nodes')
+param controlPlaneVmSize string = 'Standard_B8ms' //'Standard_B4ms'
 
 // Give access to this user / object id to the secrets in the key vault
 // - e.g. keyVaultAccessObjectId="$(az ad signed-in-user show --query 'objectId' -o tsv)"
+@description('Assign this Azure AD object id access to the KeyVault')
 param keyVaultAccessObjectId string = ''
 
 // Setting to false currently not supported due to lack of control plane egress
+@description('Make the cluster API public, note it is still secured')
 param publicCluster bool = true
 
-// Deploy a SSH jumpbox, only do this for troubleshooting purposes
+// SSH jumpbox settings - only enable this for troubleshooting purposes
+@description('If enabled a jump box VM will be deployed for SSH access to nodes')
 param deployJumpBox bool = true
-// SSH key to connect to the jumpbox, if unset password auth will be used and clusterVMPassword
+@description('SSH key to connect to the jumpbox, if unset password auth will be used, with the password in the KeyVault')
 param jumpBoxPublicKey string = ''
-
 
 // ===== Variables ============================================================
 
-var bootStrapToken = 'abcdef.0123456789abcdef'
-var certKey = '7cae2a25e84e01cb4a6583c7cfbb1df89b6f5c23974c2b9adc6a45ac1821cec3'
+// Generate bootstrap token and also a 32 byte cert key from random hex strings
+var hexString1 = replace(guid(location), '-', '')
+var hexString2 = replace(guid(location, clusterName), '-', '')
+var bootStrapToken = '${substring(hexString1, 6, 6)}.${substring(hexString2, 0, 16)}'
+var certKey = hexString1
 var clusterVMPassword = '${uniqueString(clusterName)}!P${uniqueString(subscription().tenantId)}Z'
 
 // ===== Modules & Resources ==================================================
@@ -58,6 +68,7 @@ module network '../modules/network/network.bicep' = {
   name: 'network'
   params: {
     nsgId: subnetNsg.outputs.nsgId
+    //natGatewayId: natGateway.outputs.resourceId
   }
 }
 
@@ -143,6 +154,7 @@ module controlPlane '../modules/compute/linux-vmss.bicep' = {
     loadBalancerBackendPoolId: controlPlaneLoadBalancer.outputs.backendPoolId
     userIdentityResourceId: clusterIdentity.outputs.resourceId
     instanceCount: controlPlaneCount
+    adminUser: 'kube'
   }
 }
 
@@ -159,6 +171,7 @@ module workers '../modules/compute/linux-vmss.bicep' = {
     size: workerVmSize
     userIdentityResourceId: clusterIdentity.outputs.resourceId
     instanceCount: workerCount
+    adminUser: 'kube'
   }
 }
 
@@ -173,10 +186,11 @@ module jumpBox '../modules/compute/linux-vm.bicep' = if(deployJumpBox) {
     publicIp: true
     authenticationType: jumpBoxPublicKey != '' ? 'publicKey' : 'password'
     size: 'Standard_B1ms'
+    adminUser: 'kube'
   }
 }
 
-module roles '../modules/identity/role-assign-sub.bicep' = {
+module roles '../modules/identity/role-assign-rg.bicep' = {
   scope: resGroup
   // This is NOT actually dependant on these but Azure AD is so awful and slow
   // we need a delay after creating the identity before assigning the role
@@ -191,6 +205,13 @@ module roles '../modules/identity/role-assign-sub.bicep' = {
     roleId: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
   }
 }
+
+// REMOVED need to fix this
+// https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-troubleshoot-backend-traffic#cause-4-accessing-the-internal-load-balancer-frontend-from-the-participating-load-balancer-backend-pool-vm
+// module natGateway '../modules/network/nat-gateway.bicep' = {
+//   scope: resGroup
+//   name: 'natGateway'
+// }
 
 output controlPlaneIp string = controlPlaneLoadBalancer.outputs.frontendIp
 output controlPlaneFqdn string = publicCluster ? controlPlaneIp.outputs.fqdn : 'none'
