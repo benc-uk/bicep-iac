@@ -8,7 +8,7 @@ param publicIpId string = ''
 param subnetId string = ''
 
 param port int 
-param enableFloatingIP bool = true
+param enableFloatingIP bool = false
 
 // ===== Variables ============================================================
 
@@ -51,7 +51,7 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-02-01' = {
             id: resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', name, 'frontend')
           }
           probe: {
-            id: resourceId('Microsoft.Network/loadBalancers/probes', name, 'probe_6443')
+            id: resourceId('Microsoft.Network/loadBalancers/probes', name, 'probe_${port}')
           }
           backendAddressPool: {
             id: resourceId('Microsoft.Network/loadBalancers/backendAddressPools', name, 'backend')

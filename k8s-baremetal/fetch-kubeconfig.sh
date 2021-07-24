@@ -6,10 +6,15 @@ if [[ "$0" = "$BASH_SOURCE" ]]; then
 fi
 
 DEPLOYMENT_NAME=${1:-"main"}
-
 echo "📚 Will use Azure deployment name: $DEPLOYMENT_NAME"
+
 CLUSTER_IP=$(az deployment sub show --name "$DEPLOYMENT_NAME" --query "properties.outputs.controlPlaneIp.value" -o tsv)
-echo "🌐 Checking cluster API is accepting traffic"
+if [[ $CLUSTER_IP == *"10."* ]]; then
+  echo "⛔ Can not use this script with a private cluster, run fetch-ssh-details.sh and access via the jumpbox"
+  return 1
+fi
+
+echo "🌐 Checking cluster API at $CLUSTER_IP is accepting traffic"
 nc -z $CLUSTER_IP 6443 -w 5
 if [ $? -ne 0 ]; then
   echo "💥 Error - Cluster API is not ready. Exiting..."

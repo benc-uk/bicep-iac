@@ -15,6 +15,9 @@ param subscriptionId string = subscription().subscriptionId
 param clusterName string = resourceGroup().name
 param location string = resourceGroup().location
 
+// Optionally run extra commands before things off, we use ls as kind of null/noop command
+param preRunCmd string = 'ls'
+
 // ===== Variables ============================================================
 
 var containerdScript = loadTextContent('scripts/install-containerd.sh')
@@ -33,6 +36,7 @@ var cloudConfig = '''
 package_update: true
 packages:
   - jq
+  - net-tools
 
 write_files:
   - content: | 
@@ -75,10 +79,11 @@ write_files:
     append: true
 
 runcmd:   
+  - [ {9} ]
   - [ /root/install-containerd.sh ]
   - [ /root/install-kubeadm.sh ] 
   - [ /root/kubeadm-cp.sh ] 
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, controlPlaneScript, keyVaultLibScript, cloudConf, kubeadmConf, defaultStorageClass, metricsServer)
+output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, controlPlaneScript, keyVaultLibScript, cloudConf, kubeadmConf, defaultStorageClass, metricsServer, preRunCmd)

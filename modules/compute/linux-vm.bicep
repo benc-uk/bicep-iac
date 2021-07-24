@@ -164,4 +164,5 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
 }
 
 output publicIP string = (publicIp ? pip.properties.ipAddress : 'none') 
+output privateIp string = nic.properties.ipConfigurations[0].properties.privateIPAddress
 output dnsName string = (publicIp ? pip.properties.dnsSettings.fqdn : 'none')

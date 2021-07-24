@@ -13,4 +13,4 @@ az keyvault secret show --name nodePassword --vault-name $KV_NAME > /dev/null
 if [ $? -eq 0 ]; then
   echo "🔐 Node password: $(az keyvault secret show --name nodePassword --vault-name $KV_NAME | jq -e -r '.value')"
 fi
-echo "🦘 Jump box IP: $(az deployment sub show --name main --query "properties.outputs.jumpBoxIpAddress.value" -o tsv)"
+echo "👜 Access jump box with: ssh kube@$(az deployment sub show --name main --query "properties.outputs.jumpBoxIpAddress.value" -o tsv)"

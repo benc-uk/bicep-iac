@@ -27,6 +27,7 @@
         
         # Upload the admin kubeconfig to the KeyVault 
         source /root/lib-keyvault.sh
+        echo "Uploading /etc/kubernetes/admin.conf to KeyVault as secret kubeconfig"
         putKeyVaultSecretFromFile {1} kubeconfig /etc/kubernetes/admin.conf
         exit
       fi

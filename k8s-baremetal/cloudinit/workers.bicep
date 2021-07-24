@@ -13,6 +13,9 @@ param subscriptionId string = subscription().subscriptionId
 param clusterName string = resourceGroup().name
 param location string = resourceGroup().location
 
+// Optional extra command(s) to be be run in the run_cmd section, seperated by commas
+param preRunCmd string = 'ls'
+
 // ===== Variables ============================================================
 
 var containerdScript = loadTextContent('scripts/install-containerd.sh')
@@ -56,10 +59,11 @@ write_files:
     path: /etc/kubernetes/cloud.conf
 
 runcmd:
+  - [ {6} ]
   - [ /root/install-containerd.sh ]
   - [ /root/install-kubeadm.sh ]  
   - [ /root/kubeadm-worker.sh ]  
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, nodeJoinScript, kubeadmConf, cloudConf)
+output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, nodeJoinScript, kubeadmConf, cloudConf, preRunCmd)

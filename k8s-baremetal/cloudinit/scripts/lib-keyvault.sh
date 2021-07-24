@@ -40,6 +40,17 @@
         echo $secretValue
       }
 
+      getKeyVaultSecretToFile() {
+        vaultName=$1
+        secretName=$2
+        fileName=$3
+        (( $# < 3 )) && { echo "Wrong number of arguments to getSecret"; return 1; }
+
+        access_token=$(getAccessToken)
+
+        curl -Ss -m 10 --fail "https://${vaultName}.${kvEndpoint}/secrets/${secretName}?api-version=2016-10-01" -H "Authorization: Bearer ${access_token}" | jq -r ".value" > $fileName
+      }
+
       putKeyVaultSecretFromFile() {
         vaultName=$1
         secretName=$2

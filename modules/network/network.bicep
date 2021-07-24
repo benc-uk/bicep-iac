@@ -2,9 +2,9 @@ param name string = resourceGroup().name
 param location string = resourceGroup().location
 
 param addressSpace string = '10.0.0.0/8'
-param subnetCidr string = '10.100.0.0/24'
+param defaultSubnetCidr string = '10.100.0.0/24'
 
-param subnetName string = 'default'
+param defaultSubnetName string = 'default'
 param nsgId string = ''
 param natGatewayId string = ''
 
@@ -33,9 +33,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
 
     subnets: [
       {
-        name: subnetName
+        name: defaultSubnetName
         properties: {
-          addressPrefix: subnetCidr
+          addressPrefix: defaultSubnetCidr
           networkSecurityGroup: nsgId != '' ? nsgConfig : null
           natGateway: natGatewayId != '' ? natGatewayConfig : null
         }
