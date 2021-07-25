@@ -5,11 +5,9 @@
 targetScope = 'subscription'
 
 // Resource group which will be created and contain everything
-param resGroupName string
+param clusterName string
 // Azure region for all resources
-param location string
-// Suffix is a string appended to all resource names
-param suffix string = 'rke2' //-${substring(uniqueString(resGroupName), 0, 4)}'
+param location string = deployment().location
 // Password or SSH key to connect to the servers & agent node VMs
 param authString string
 // Use SSH key or password
@@ -31,18 +29,18 @@ param cloudName string = 'AzurePublic'
 // Constant GUID for contributor role
 var contributorRoleGUID = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
 // Token used for agents to join the cluster
-var rke2Token = uniqueString(resGroupName, suffix)
+var rke2Token = uniqueString(clusterName, deployment().location)
 // Used to give the server a public FQDN
 var dnsSuffix = substring(uniqueString(resGroup.name), 0, 4)
 // Different domain for different clouds
 var pipDomain = (cloudName == 'AzureUSGovernmentCloud' ? 'usgovcloudapi.net' : 'azure.com')
-// Name prefix for server VM, will get suffixed
+// Name prefix for server VM
 var serverName = 'server'
 
 // ===== Modules & Resources ==================================================
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: resGroupName
+  name: clusterName
   location: location  
 }
 
@@ -50,9 +48,6 @@ module network '../modules/network/network.bicep' = {
   scope: resGroup
   name: 'network'
   params: {
-    location: location
-    suffix: suffix
-    prefix: ''
     nsgId: subnetNsg.outputs.nsgId
   }
 }
@@ -61,9 +56,6 @@ module subnetNsg '../modules/network/nsg.bicep' = {
   scope: resGroup
   name: 'subnetNsg'
   params: {
-    location: location
-    suffix: suffix
-    prefix: ''
     openPorts: [ 
       '22'
       '6443'
@@ -74,11 +66,6 @@ module subnetNsg '../modules/network/nsg.bicep' = {
 module vmIdentity '../modules/identity/user-managed.bicep' = {
   scope: resGroup
   name: 'vmIdentity'
-  params: {
-    location: location
-    suffix: suffix
-    prefix: ''
-  }
 }
 
 module serverConfig 'config/server.bicep' = {
@@ -86,17 +73,17 @@ module serverConfig 'config/server.bicep' = {
   scope: resGroup
   params: {
     token: rke2Token
-    serverHost: '${serverName}-${suffix}'
+    serverHost: serverName
     region: location
     clientId: vmIdentity.outputs.clientId
-    resourceGroup: resGroupName
+    resourceGroup: clusterName
     subscriptionId: subscription().subscriptionId
     tenantId: subscription().tenantId
-    vnetName: suffix
-    nsgName: suffix
+    vnetName: clusterName
+    nsgName: clusterName
     subnetName: network.outputs.subnetName
     cloudName: cloudName
-    serverHostPublic: '${serverName}-${suffix}-${dnsSuffix}.${location}.cloudapp.${pipDomain}'
+    serverHostPublic: '${serverName}-${dnsSuffix}.${location}.cloudapp.${pipDomain}'
   }
 }
 
@@ -105,26 +92,25 @@ module agentConfig 'config/agent.bicep' = {
   scope: resGroup
   params: {
     token: rke2Token
-    serverHost: '${serverName}-${suffix}'
+    serverHost: serverName
     region: location
     clientId: vmIdentity.outputs.clientId
-    resourceGroup: resGroupName
+    resourceGroup: clusterName
     subscriptionId: subscription().subscriptionId
     tenantId: subscription().tenantId
-    vnetName: suffix
-    nsgName: suffix
+    vnetName: clusterName
+    nsgName: clusterName
     subnetName: network.outputs.subnetName
     cloudName: cloudName
   }
 }
 
-module server '../modules/vm/linux.bicep' = {
+module server '../modules/compute/linux-vm.bicep' = {
   scope: resGroup
   name: 'server'
   params: {
     location: location
-    suffix: suffix
-    prefix: '${serverName}-'
+    name: serverName
     subnetId: network.outputs.subnetId
     adminPasswordOrKey: authString
     authenticationType: authType
@@ -136,13 +122,12 @@ module server '../modules/vm/linux.bicep' = {
   }
 }
 
-module agent '../modules/vm/linux.bicep' = [for i in range(0, agentCount): {
+module agent '../modules/compute/linux-vm.bicep' = [for i in range(0, agentCount): {
   scope: resGroup
   name: 'agent-${i}'
   params: {
     location: location
-    suffix: suffix
-    prefix: 'agent${i}-'
+    name: 'agent-${i}'
     subnetId: network.outputs.subnetId
     adminPasswordOrKey: authString
     authenticationType: authType
@@ -163,7 +148,6 @@ module roles '../modules/identity/role-assign-sub.bicep' = {
   ]
   name: 'roles'
   params: {
-    suffix: suffix
     principalId: vmIdentity.outputs.principalId
     roleId: contributorRoleGUID
   }

@@ -133,7 +133,7 @@ runcmd:
   - [ systemctl, start, rke2-server.service ]
 
   - [ sysctl, -p, /etc/sysctl.d/10-vm-map-count.conf ]
-  - [ sleep, 10 ]
+  - [ sleep, 30 ]
   - [ chmod, a+rw, /etc/rancher/rke2/rke2.yaml ]
 '''
 

@@ -1,4 +1,6 @@
 # Bicep Sandbox
-A place to experiment with Azure Bicep
 
-https://github.com/Azure/bicep
+A set of Bicep modules and templates for various use cases
+
+See readmes in each sub-directory for more details.
+

@@ -12,7 +12,7 @@ The pod network is provided by [Flannel](https://github.com/flannel-io/flannel),
 
 The cluster consists of the following Azure resources:
 
-- Network: A VNet, subnet, security group
+- Network: A VNet, subnets, security group
 - VM scale set for the Kubernetes control plane
 - VM scale set for the Kubernetes worker nodes
 - Azure KeyVault
@@ -20,7 +20,7 @@ The cluster consists of the following Azure resources:
 - Optional: Jump box VM
 - Load balancer 
   - For public clusters, Azure Load Balancer is put in front of control plane, with a public IP.
-  - For private clusters, HAProxy load balancer VM with a backend set to the range of IPs used by the control plane nodes.
+  - For private clusters, HAProxy load balancer running on a VM with a backend set to the range of IPs used by the control plane nodes.
 
 For fully automated & unattended deployment it employees several techniques & tricks:
 
