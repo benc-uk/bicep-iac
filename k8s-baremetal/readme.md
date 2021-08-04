@@ -1,10 +1,10 @@
 # 🤖 Baremetal Kubernetes on Azure With Kubeadm
 
-This is a Bicep template to deploy a bare metal Kubernetes cluster to Azure.
+This is a Bicep template to deploy a bare metal "vanilla" Kubernetes cluster to Azure.
 
 The cluster is configured & created using [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/) and containerd is used as the container runtime. Both public and private clusters are supported.
 
-The cluster can run in HA mode if multiple cluster nodes are deployed, to synchronize the cluster creation KeyVault is used to provide a simple first-come-first-served leader election mechanism.
+The cluster can run in HA mode if multiple control plane nodes are deployed.
 
 The [Kubernetes cloud provider for Azure](https://kubernetes-sigs.github.io/cloud-provider-azure/) will be configured (using in-tree method, via kubelet arguments) as well as a default storage class backed with Azure disk. This means persistent volumes will work and can be mounted, as well as external load balancer (backed with Azure Load Balancer). Azure user managed identity is used to give the cloud provider access to the Azure resources and API, and is assigned contributor role on the resource group.
 
@@ -27,7 +27,7 @@ For fully automated & unattended deployment it employees several techniques & tr
 - Heavy use of cloud-init to inject scripts & config into the VMs.
 - Bicep format function to inject parameters into config & scripts.
 - Bash scripts to install & run kubeadm, check for cluster availability, and configure the cluster.
-- KeyVault to hold secrets, store kubeconfig to access the cluster, and synchronize cluster initialization.
+- KeyVault to hold secrets, store kubeconfig to access the cluster.
 - A bash library which uses managed identity and provides helper functions to get/put secrets from KeyVault.
 
 ## Quick Deploy
@@ -74,17 +74,17 @@ With a private cluster this is the only way to access the cluster in order to ru
 
 The cluster is bootstraped by **kubeadm** as follows
 
-- Each node on the control plane runs `/root/kubeadm-cp.sh` this is done by cloud-init, this script checks KeyVault for a secret named `firstNode`
-  - If `firstNode` **is not found** this node runs `kubeadm init` to initialize the cluster and it sets the `firstNode` secret in KeyVault to this node's hostname, once the cluster is initialized, the following steps are carried out:
+- Each node on the control plane runs `/root/kubeadm-cp.sh` this is done by cloud-init, this script checks the hostname
+  - If the hostname ends `000000` this is the first node, and it runs `kubeadm init` to initialize the cluster, once the cluster is initialized, the following steps are carried out:
     - Install Flannel CNI
     - Apply `/root/default-sc.yaml` to create a default storage class
     - Apply `/root/metrics-server.yaml` to create a default storage class
     - Upload the `/etc/kubernetes/admin.conf` file to KeyVault as a secret named `kubeconfig`
-  - If `firstNode` **is found**, then this node waits for the control plane to be ready (by polling that port 6443 open) then runs `kubeadm join`
+  - If the hostname is anything else then this node waits for the control plane to be ready (by polling that port 6443 is open) then runs `kubeadm join`
 - In both cases the `/root/kubeadm.conf` file is used to provide initialization details and cluster configuration for control plane nodes.
 - The `kubeadm.conf` enables the in-tree Azure cloud provider with kubelet extra args and points it to `/etc/kubernetes/cloud.conf` and this file is created dynamically by Bicep at deployment time.
 
-Worker nodes join the cluster by cloud-init running `kubeadm-worker.sh` this polls and checks the control-plane is ready (using the same port 6443 check) then runs `kubeadm join` with `kubeadm-worker.conf` config file (which also enables the in-tree Azure cloud provider using `/etc/kubernetes/cloud.conf`)
+Worker nodes join the cluster by cloud-init running a different script, `kubeadm-worker.sh` this polls and checks the control-plane is ready (using the same port 6443 check) then runs `kubeadm join` with `kubeadm-worker.conf` config file (which also enables the in-tree Azure cloud provider using `/etc/kubernetes/cloud.conf`)
 
 **Note 1.** A randomised bootstrap token & cert-key is created by the Bicep template and injected into the `kubeadm.conf` and `kubeadm-worker.conf`
 
@@ -94,7 +94,7 @@ Worker nodes join the cluster by cloud-init running `kubeadm-worker.sh` this pol
 
 Private clusters can be deployed by setting `publicCluster` to false, however an internal Azure Load Balancer (also refereed to as ILB) can't be used for several reasons:
 
-- It is MAJOR a limitation of Azure that "hairpining" is not supported on internal load balancers, this means the VMs in the load balancer back end CAN NOT access the frontend / VIP of the load balancer [see this note in the docs](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-troubleshoot-backend-traffic#cause-4-accessing-the-internal-load-balancer-frontend-from-the-participating-load-balancer-backend-pool-vm)
-- How kubadm init / join operates https://github.com/kubernetes/kubeadm/issues/1685 means that it tries to talk to the load-balancer frontend address
+- It is MAJOR a limitation of Azure that "hairpinning" is not supported on internal load balancers, this means the VMs in the load balancer back end CAN NOT access the frontend / VIP of the load balancer [see this note in the docs](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-troubleshoot-backend-traffic#cause-4-accessing-the-internal-load-balancer-frontend-from-the-participating-load-balancer-backend-pool-vm)
+- How kubeadm init / join operates https://github.com/kubernetes/kubeadm/issues/1685 means that it tries to talk to the load-balancer frontend address
 
 In order to workaround this, a VM running HAProxy is used instead of an Azure Load Balancer.

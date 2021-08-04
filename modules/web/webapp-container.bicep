@@ -10,6 +10,8 @@ param registry string = 'docker.io'
 param repo string
 param tag string = 'latest'
 param appSettings array = []
+
+// Set these if the registry requires auth 
 param registryUser string = ''
 param registryPassword string = ''
 

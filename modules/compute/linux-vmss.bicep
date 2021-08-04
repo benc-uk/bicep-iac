@@ -50,6 +50,9 @@ param imageRef object = {
 @description('Assign to a load balancer backend pool')
 param loadBalancerBackendPoolId string = ''
 
+@description('Enable overprovisioning')
+param overprovision bool = false
+
 // ===== Variables ============================================================
 
 var identityConfig = {
@@ -92,6 +95,8 @@ resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2021-03-01' = {
     upgradePolicy: {
       mode: 'Manual'
     }
+
+    overprovision: overprovision
 
     virtualMachineProfile: {
       osProfile: {

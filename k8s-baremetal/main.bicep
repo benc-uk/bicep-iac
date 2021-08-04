@@ -300,7 +300,7 @@ module haproxyLoadBalancer '../modules/compute/linux-vm.bicep' = if(!publicClust
   }
 }
 
-// ===== Outputs ==========================az==================================
+// ===== Outputs ==============================================================
 
 output controlPlaneIp string = publicCluster ? controlPlaneLoadBalancer.outputs.frontendIp : haproxyLoadBalancer.outputs.privateIp
 output controlPlaneFqdn string = publicCluster ? controlPlanePublicIp.outputs.fqdn : 'none'
