@@ -58,21 +58,21 @@ It's important to assign your own user OID in Azure AD to the `keyVaultAccessObj
 
 ## Cluster Access
 
-The template will assign a public IP to the control plane load balancer and open the Kubnernetes API (port 6443) externally. This is still secure, as without the correct kubeconfig (which is held in KeyVault) you will not be able to connect or do anything with the cluster.
+The template will assign a public IP to the control plane load balancer and open the Kubernetes API (port 6443) externally. This is still secure, as without the correct kubeconfig (which is held in KeyVault) you will not be able to connect or do anything with the cluster.
 
 To get access to a public cluster run `source ./fetch-kubeconfig.sh`, this script will check the cluster is online, downloads the kubeconfig file from KeyVault to a local file `azure.kubeconfig` and sets the KUBECONFIG environmental var (note it overwrites it) to point to the azure.kubeconfig file. Once it has run you should be able to run `kubectl` and other commands such as `helm` as normal against the cluster.
 
 ## SSH Access & Private Clusters
 
-By default there is no way to SSH on to the control plane or worker nodes order to access the nodes. If you require SSH access for troubleshooting purposes, you should deploy a jump box (`deployJumpBox=true`) and provide a value for `jumpBoxPublicKey`, only key-pair authentication for the jumpbox is supported.
+By default there is no way to SSH on to the control plane or worker nodes order to access the OS of the nodes. If you require SSH access for troubleshooting purposes, you should deploy a jump box by setting `deployJumpBox=true` and optionally provide a value for `jumpBoxPublicKey`. This is the SSH key to connect to the jumpbox, if unset then less secure password auth will be used, with the generated password stored in the KeyVault
 
-Run the `fetch-password.sh` script to get the password to SSH to the nodes, and SSH to the jumpbox (username is `kube`) using the key pair you provided, then from the jumpbox SSH to the nodes using same user `kube` and the password output from the script.
+Run the `fetch-ssh-details.sh` script to get the address of the jumpbox and the password from KeyVault. First SSH to the jumpbox (username is `kube`) using the key pair or password, then from the jumpbox SSH to the nodes using same user `kube` and the password output from the script.
 
 With a private cluster this is the only way to access the cluster in order to run kubectl etc. The `access-cluster.sh` script on the jump box will fetch the kubeconfig from KeyVault and set it to be the default used by kubectl (i.e. downloads it to `$HOME/.kube/config`).
 
 ## Kubernetes Bootstrap Process
 
-The cluster is bootstraped by **kubeadm** as follows
+The cluster is boot strapped by **kubeadm** as follows
 
 - Each node on the control plane runs `/root/kubeadm-cp.sh` this is done by cloud-init, this script checks the hostname
   - If the hostname ends `000000` this is the first node, and it runs `kubeadm init` to initialize the cluster, once the cluster is initialized, the following steps are carried out:
