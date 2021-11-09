@@ -1,4 +1,4 @@
-# RKE2 Bicep Template
+# 🐄 RKE2 Bicep Template
 
 Deploys a RKE2 cluster to Azure on Ubuntu 20.04
 
