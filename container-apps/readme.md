@@ -1,6 +1,6 @@
 # 📦🌐 Azure Container App
 
-This deploys a container using Azure Container App service. You can use this as a template or starting point for deploying any container
+This deploys a container using the [Azure Container App service](https://docs.microsoft.com/en-gb/azure/container-apps/overview). You can use this as a template or starting point for deploying any container
 
 > NOTE: Nov 2021 - Currently Azure Container Apps are only available in a very small set of regions
 
