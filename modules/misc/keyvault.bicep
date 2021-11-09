@@ -2,21 +2,23 @@ param name string = resourceGroup().name
 param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
 param location string = resourceGroup().location
 
+@description('SKU of the KeyVault')
+@allowed([
+  'premium'
+  'standard'
+])
 param sku string = 'standard'
-param objectIdsWithAccess array
-param secrets array
+
+@description('Array of OID GUIDs of indentities in Azure AD to be given access to secrets')
+param objectIdsWithAccess array = []
+
+@description('Array of objects with {name, value} pairs, to be added as secrets')
+param secrets array = []
 
 // ===== Variables ============================================================
 
-// Append suffix
+// Append suffix, as these resources need to be uniquely named
 var resourceName = '${name}${suffix}'
-// HACK: To workaround bug Bicep https://github.com/Azure/bicep/issues/1754
-var secretsArray = concat(secrets, [
-  {
-    name: 'ignore'
-    value: guid(resourceName)
-  }
-])
 
 // ===== Modules & Resources ==================================================
 
@@ -43,7 +45,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   }
 }
 
-resource addSecrets 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = [for secret in secretsArray: {
+resource addSecrets 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = [for secret in secrets: {
   name: secret.name
   parent: keyVault
   properties: {
