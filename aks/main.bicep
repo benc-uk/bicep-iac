@@ -1,6 +1,6 @@
-//
-// Deploy AKS with CNI and monitoring
-//
+// ============================================================================
+// Deploy AKS into a VNet with CNI and monitoring
+// ============================================================================
 
 targetScope = 'subscription'
 
@@ -43,7 +43,7 @@ module aks '../modules/kubernetes/aks.bicep' = {
     netSubnet: network.outputs.subnetName
     
     // Optional features
-    logsWorkspaceId: enableMonitoring ? logAnalytics.outputs.logWorkspaceId : ''
+    logsWorkspaceId: enableMonitoring ? logAnalytics.outputs.id : ''
   }
 }
 

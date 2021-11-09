@@ -1,6 +1,6 @@
 // ============================================================================
 // THIS DOESN'T WORK .... YET
-// az deployment sub create --template-file ./wordpress.bicep --location northeurope
+// Need to work out how to connect two apps using TCP rather than HTTP ingress
 // ============================================================================
 
 targetScope = 'subscription'

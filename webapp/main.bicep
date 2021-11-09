@@ -6,10 +6,18 @@ targetScope = 'subscription'
 
 @description('Name used for resource group, and base name for all resources')
 param appName string 
+
 @description('Azure region for all resources')
 param location string = deployment().location
+
 @description('Existing App Service Plan, leave blank to create a new one')
 param existingSvcPlanId string = ''
+
+@description('Registry holding the image to deploy')
+param registry string = 'ghcr.io'
+
+@description('Name of the repo & image')
+param imageRepo string = 'benc-uk/nodejs-demoapp'
 
 // ===== Variables ============================================================
 
@@ -34,8 +42,8 @@ module webApp '../modules/web/webapp-container.bicep' = {
   name: 'webApp'
   params: {
     servicePlanId: existingSvcPlanId == '' ? servicePlan.outputs.resourceId : existingSvcPlanId
-    registry: 'ghcr.io'
-    repo: 'benc-uk/nodejs-demoapp'
+    registry: registry
+    repo: imageRepo
   }
 }
 

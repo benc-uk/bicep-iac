@@ -1,17 +1,19 @@
 // ============================================================================
 // Deploy a container app with app container environment and log analytics
-// az deployment sub create --template-file ./demoapp.bicep --location northeurope
 // ============================================================================
 
 targetScope = 'subscription'
 
 @description('Name used for resource group, and default base name for all resources')
 param appName string = 'temp-demoapp'
+
 @description('Azure region for all resources')
 param location string = deployment().location
 
-// ===== Variables ============================================================
+@description('Container image')
+param image string = 'ghcr.io/benc-uk/nodejs-demoapp:latest'
 
+// ===== Variables ============================================================
 
 // ===== Modules & Resources ==================================================
 
@@ -41,7 +43,7 @@ module demoApp '../modules/compute/container-app.bicep' = {
     name: 'nodejs-demoapp'
     environmentId: containerAppEnv.outputs.id
     
-    image: 'ghcr.io/benc-uk/nodejs-demoapp:latest'
+    image: image
 
     ingressPort: 3000
     ingressExternal: true
