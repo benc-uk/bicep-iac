@@ -5,10 +5,10 @@ param netVnet string
 param netSubnet string
 param logsWorkspaceId string = ''
 
-param cluster object = {
+param config object = {
   version: '1.19.7'
   nodeSize: 'Standard_DS2_v2'
-  nodeCount: 1
+  nodeCount: 2
   nodeCountMax: 10
 }
 
@@ -22,7 +22,7 @@ var addOns = {
   } : {}
 }
 
-resource aks 'Microsoft.ContainerService/managedClusters@2020-12-01' = {
+resource aks 'Microsoft.ContainerService/managedClusters@2021-07-01' = {
   name: name
   location: location
   
@@ -32,17 +32,17 @@ resource aks 'Microsoft.ContainerService/managedClusters@2020-12-01' = {
 
   properties: {
     dnsPrefix: name
-    kubernetesVersion: cluster.version
+    kubernetesVersion: config.version
     agentPoolProfiles: [
       {
         name: 'default'
         mode: 'System'
         vnetSubnetID: resourceId('Microsoft.Network/virtualNetworks/subnets', netVnet, netSubnet)
-        vmSize: cluster.nodeSize
+        vmSize: config.nodeSize
         enableAutoScaling: true
-        count: cluster.nodeCount
-        minCount: cluster.nodeCount
-        maxCount: cluster.nodeCountMax
+        count: config.nodeCount
+        minCount: config.nodeCount
+        maxCount: config.nodeCountMax
       }
     ]
     

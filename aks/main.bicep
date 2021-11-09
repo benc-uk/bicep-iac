@@ -9,10 +9,10 @@ param location string = deployment().location
 
 param enableMonitoring bool = true
 
-param clusterParams object = {
-  version: '1.20.7'
-  nodeSize: 'Standard_DS2_v2'
-  nodeCount: 2
+param clusterConfig object = {
+  version: '1.21.2'
+  nodeSize: 'Standard_D4s_v4'
+  nodeCount: 1
   nodeCountMax: 10
 }
 
@@ -28,7 +28,7 @@ module network '../modules/network/network.bicep' = {
 
 module logAnalytics '../modules/monitoring/log-analytics.bicep' = if(enableMonitoring) {
   scope: resGroup
-  name: 'monitors'
+  name: 'monitoring'
 }
 
 module aks '../modules/kubernetes/aks.bicep' = {
@@ -36,7 +36,7 @@ module aks '../modules/kubernetes/aks.bicep' = {
   name: 'aks'
   params: {
     // Base AKS config like version and nodes sizes
-    cluster: clusterParams
+    config: clusterConfig
 
     // Network details
     netVnet: network.outputs.vnetName
