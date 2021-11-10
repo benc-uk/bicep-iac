@@ -32,12 +32,28 @@ param envs array = []
 @description('Configure secrets which can be referenced by the envs array')
 param secrets array = []
 
+@description('Enable scaling on concurrent HTTP requests')
+@minValue(0)
+param scaleHttpRequests int = 0
+
 // ===== Variables ============================================================
 
 var ingressConfig = {
   external: ingressExternal
   targetPort: ingressPort
 }
+
+var httpScaleRule = [
+  {
+    name: 'http-scale-rule'
+    http: {
+      metadata: {
+        // It's weird this needs to be a string!?
+        concurrentRequests: '${scaleHttpRequests}'
+      }
+    }
+  }
+]
 
 // ===== Modules & Resources ==================================================
 
@@ -59,17 +75,19 @@ resource containerApp 'Microsoft.Web/containerApps@2021-03-01' = {
           }
         }
       ]
+
+      scale: {
+        maxReplicas: replicasMax
+        minReplicas: replicasMin
+
+        rules: scaleHttpRequests > 0 ? httpScaleRule : []
+      }
     }
 
     configuration: {
       secrets: secrets
       activeRevisionsMode: 'Multiple'
       ingress: ingressPort != 0 ? ingressConfig : null
-    }
-
-    scale: {
-      maxReplicas: replicasMax
-      minReplicas: replicasMin
     }
   }
 }

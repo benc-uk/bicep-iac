@@ -48,6 +48,8 @@ module demoApp '../modules/compute/container-app.bicep' = {
     ingressPort: 3000
     ingressExternal: true
 
+    scaleHttpRequests: 200
+
     secrets: [
       {
         // OPTIONAL - OpenWeather API key, enables the weather feature of the demo app
