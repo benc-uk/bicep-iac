@@ -1,0 +1,12 @@
+{
+  "analyzers": {
+    "core": {
+      "enabled": true,
+      "rules": {
+        "explicit-values-for-loc-params": {
+          "level": "off"
+        }
+      }
+    }
+  }
+}
