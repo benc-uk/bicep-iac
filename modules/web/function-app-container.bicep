@@ -10,7 +10,13 @@ param registry string = 'docker.io'
 param repo string
 param tag string = 'latest'
 param appSettings array = []
-param kind string = 'web'
+
+// Function app settings
+param functionsVersion int = 4
+param storageAccountName string
+@secure()
+param storageAccountKey string
+param appInsightsKey string
 
 // Set these if the registry requires auth 
 param registryUser string = ''
@@ -24,9 +30,42 @@ param systemAssignedIdentity bool = false
 
 // ===== Variables ============================================================
 
+var kind = 'functionapp,linux,container'
 var resourceName = '${name}${suffix}'
 
-var settingsDockerServer = [
+var functionAppSettings = [
+  {
+    name: 'AzureWebJobsStorage'
+    value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccountKey}'
+  }
+  {
+    name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+    value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccountKey}'
+  }
+  {
+    name: 'WEBSITE_CONTENTSHARE'
+    value: 'funcapp-${name}'
+  }
+  {
+    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+    value: appInsightsKey
+  }
+  {
+    name: 'FUNCTIONS_EXTENSION_VERSION'
+    value: '~${functionsVersion}'
+  }
+  {
+    name: 'FUNCTION_APP_EDIT_MODE'
+    value: 'readOnly'
+  }
+  {
+    name: 'DOCKER_CUSTOM_IMAGE_NAME'
+    value: '${registry}/${repo}:${tag}'
+  }
+  {
+    name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+    value: 'false'
+  }
   {
     name: 'DOCKER_REGISTRY_SERVER_URL'
     value: 'https://${registry}'
@@ -44,7 +83,7 @@ var settingsDockerAuth = registryUser == '' ? [] : [
   }
 ]
 
-var appSettingsMerged = concat(appSettings, settingsDockerServer, settingsDockerAuth)
+var appSettingsMerged = concat(appSettings, settingsDockerAuth, functionAppSettings)
 
 var userIdentityConfig = {
   type: 'UserAssigned'
@@ -59,7 +98,7 @@ var systemIdentityConfig = {
 
 // ===== Modules & Resources ==================================================
 
-resource webApp 'Microsoft.Web/sites@2021-01-15' = {
+resource functionApp 'Microsoft.Web/sites@2021-01-15' = {
   name: resourceName
   location: location
   kind: kind
@@ -79,6 +118,6 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
 
 // ===== Outputs ==============================================================
 
-output resourceId string = webApp.id
-output hostname string = webApp.properties.hostNames[0]
-output systemAssignedIdentityPrincipalId string = (systemAssignedIdentity ? webApp.identity.principalId : 'none')
+output resourceId string = functionApp.id
+output hostname string = functionApp.properties.hostNames[0]
+output systemAssignedIdentityPrincipalId string = (systemAssignedIdentity ? functionApp.identity.principalId : 'none')

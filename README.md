@@ -8,6 +8,7 @@ The [shared modules](./modules) folder holds reusable building blocks, used by o
 
 ## Templates
 
+- [Containerized Function App](./function-app-container)
 - [Azure Kubernetes Service](./aks)
 - [Azure Container Apps](./container-apps)
 - [Bare Metal Kubernetes](./k8s-baremetal)
