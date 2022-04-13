@@ -1,5 +1,5 @@
 param name string = resourceGroup().name
-param location string = resourceGroup().location 
+param location string = resourceGroup().location
 
 @description('Resource ID of Container App Environment used to host this app')
 param environmentId string
@@ -23,6 +23,12 @@ param replicasMax int = 10
 @description('Port to expose from the app as HTTP ingress, if any')
 param ingressPort int = 0
 
+@description('Path to use for HTTP probes, leave blank to disable')
+param probePath string = ''
+
+@description('Port to use for probes')
+param probePort int = 0
+
 @description('Expose ingress traffic to the internet (over HTTPS)')
 param ingressExternal bool = false
 
@@ -36,12 +42,27 @@ param secrets array = []
 @minValue(0)
 param scaleHttpRequests int = 0
 
+@description('Revision mode; multiple or single')
+param revisionMode string = 'multiple'
+
 // ===== Variables ============================================================
 
 var ingressConfig = {
   external: ingressExternal
   targetPort: ingressPort
 }
+
+var probeConfig = probePath != '' ? [
+  {
+    type: 'readiness'
+    httpGet: {
+      path: probePath
+      port: probePort
+    }
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  }
+] : []
 
 var httpScaleRule = [
   {
@@ -57,12 +78,12 @@ var httpScaleRule = [
 
 // ===== Modules & Resources ==================================================
 
-resource containerApp 'Microsoft.Web/containerApps@2021-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' = {
   location: location
   name: name
 
   properties: {
-    kubeEnvironmentId: environmentId
+    managedEnvironmentId: environmentId
     template: {
       containers: [
         {
@@ -73,6 +94,7 @@ resource containerApp 'Microsoft.Web/containerApps@2021-03-01' = {
             cpu: json(cpu)
             memory: memory
           }
+          probes: probeConfig
         }
       ]
 
@@ -86,7 +108,7 @@ resource containerApp 'Microsoft.Web/containerApps@2021-03-01' = {
 
     configuration: {
       secrets: secrets
-      activeRevisionsMode: 'Multiple'
+      activeRevisionsMode: revisionMode
       ingress: ingressPort != 0 ? ingressConfig : null
     }
   }

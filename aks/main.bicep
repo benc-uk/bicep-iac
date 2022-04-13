@@ -10,7 +10,7 @@ param location string = deployment().location
 param enableMonitoring bool = true
 
 param clusterConfig object = {
-  version: '1.21.2'
+  version: '1.22.6'
   nodeSize: 'Standard_D4s_v4'
   nodeCount: 1
   nodeCountMax: 10
@@ -18,7 +18,7 @@ param clusterConfig object = {
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2020-06-01' = {
   name: clusterName
-  location: location  
+  location: location
 }
 
 module network '../modules/network/network.bicep' = {
@@ -26,7 +26,7 @@ module network '../modules/network/network.bicep' = {
   name: 'network'
 }
 
-module logAnalytics '../modules/monitoring/log-analytics.bicep' = if(enableMonitoring) {
+module logAnalytics '../modules/monitoring/log-analytics.bicep' = if (enableMonitoring) {
   scope: resGroup
   name: 'monitoring'
 }
@@ -41,7 +41,7 @@ module aks '../modules/kubernetes/aks.bicep' = {
     // Network details
     netVnet: network.outputs.vnetName
     netSubnet: network.outputs.subnetName
-    
+
     // Optional features
     logsWorkspaceId: enableMonitoring ? logAnalytics.outputs.id : ''
   }

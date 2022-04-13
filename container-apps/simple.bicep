@@ -19,7 +19,7 @@ param image string = 'ghcr.io/benc-uk/nodejs-demoapp:latest'
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: appName
-  location: location  
+  location: location
 }
 
 module logAnalytics '../modules/monitoring/log-analytics.bicep' = {
@@ -27,7 +27,7 @@ module logAnalytics '../modules/monitoring/log-analytics.bicep' = {
   name: 'monitoring'
 }
 
-module  containerAppEnv '../modules/compute/container-app-env.bicep' = {
+module containerAppEnv '../modules/containers/app-env.bicep' = {
   scope: resGroup
   name: 'containerAppEnv'
   params: {
@@ -36,19 +36,22 @@ module  containerAppEnv '../modules/compute/container-app-env.bicep' = {
   }
 }
 
-module demoApp '../modules/compute/container-app.bicep' = {
+module demoApp '../modules/containers/app.bicep' = {
   scope: resGroup
   name: 'demoApp'
   params: {
     name: 'nodejs-demoapp'
     environmentId: containerAppEnv.outputs.id
-    
+
     image: image
 
     ingressPort: 3000
     ingressExternal: true
 
     scaleHttpRequests: 200
+
+    probePath: '/'
+    probePort: 3000
 
     secrets: [
       {
