@@ -12,9 +12,9 @@ param location string = deployment().location
 
 // ===== Variables ============================================================
 
-var subnetAppsName = 'apps'
-var subnetCPName = 'controlplane'
 var mysqlDbPassword = uniqueString(appName, location)
+var wordpressImage = 'wordpress:latest'
+var mySQLImage = 'mysql:5-debian'
 
 // ===== Modules & Resources ==================================================
 
@@ -39,11 +39,11 @@ module network '../modules/network/network-multi.bicep' = {
     addressSpace: '10.75.0.0/16'
     subnets: [
       {
-        name: subnetCPName
+        name: 'controlplane'
         cidr: '10.75.0.0/21'
       }
       {
-        name: subnetAppsName
+        name: 'apps'
         cidr: '10.75.8.0/21'
       }
       {
@@ -73,7 +73,7 @@ module wordpress '../modules/containers/app.bicep' = {
   params: {
     name: 'wordpress'
     environmentId: containerAppEnv.outputs.id
-    image: 'wordpress:latest'
+    image: wordpressImage
     replicasMin: 1
     replicasMax: 1
     revisionMode: 'single'
@@ -117,7 +117,7 @@ module mysql '../modules/containers/instance.bicep' = {
   name: 'mysql'
   params: {
     name: 'mysql'
-    image: 'mysql:5-debian'
+    image: mySQLImage
 
     memoryRequest: '2.0'
     cpuRequest: 2
