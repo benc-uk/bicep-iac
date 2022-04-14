@@ -1,3 +1,7 @@
+// ============================================================================
+// Virtual Network with multi subnets and support for delegation
+// ============================================================================
+
 param name string = resourceGroup().name
 param location string = resourceGroup().location
 
@@ -5,6 +9,7 @@ param location string = resourceGroup().location
 param addressSpace string = '10.0.0.0/8'
 
 @description('Array of subnet objects, each object should have `name` and `cidr` properties')
+// Optional properies are `delegation`, `nsgId` & `natGatewayId`
 param subnets array = []
 
 // ===== Variables ============================================================

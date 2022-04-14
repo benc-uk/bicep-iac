@@ -1,3 +1,7 @@
+// ============================================================================
+// Simple Virtual Network with default subnet and few features
+// ============================================================================
+
 param name string = resourceGroup().name
 param location string = resourceGroup().location
 

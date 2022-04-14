@@ -1,11 +1,13 @@
 // ============================================================================
-// Deploy a container app into a Vnet
+// Deploy Keycloak and MS-SQL Server as Container App and Container Instance
 // ============================================================================
+
+// NOTE! Needs more work to run a first time create of the keycloak database in MSSQL
 
 targetScope = 'subscription'
 
 @description('Name used for resource group, and default base name for all resources')
-param appName string = 'temp-wordpress'
+param appName string = 'temp-keycloak-new'
 
 @description('Azure region for all resources')
 param location string = deployment().location
@@ -14,7 +16,8 @@ param location string = deployment().location
 
 var subnetAppsName = 'apps'
 var subnetCPName = 'controlplane'
-var mysqlDbPassword = uniqueString(appName, location)
+var dbPassword = '${uniqueString(appName, location)}!2022'
+var keycloakPassword = '${uniqueString(appName, location)}!kckc'
 
 // ===== Modules & Resources ==================================================
 
@@ -67,73 +70,84 @@ module containerAppEnv '../modules/containers/app-env.bicep' = {
   }
 }
 
-module wordpress '../modules/containers/app.bicep' = {
+module keycloak '../modules/containers/app.bicep' = {
   scope: resGroup
-  name: 'wordpress'
+  name: 'keycloak'
   params: {
-    name: 'wordpress'
+    name: 'keycloakx'
     environmentId: containerAppEnv.outputs.id
-    image: 'wordpress:latest'
+    image: 'ghcr.io/benc-uk/keycloak:nodbnew'
     replicasMin: 1
     replicasMax: 1
-    ingressPort: 80
+    ingressPort: 8080
     ingressExternal: true
     cpu: '2'
     memory: '4.0Gi'
     revisionMode: 'single'
-    secrets: [
-      {
-        name: 'WORDPRESS_DB_PASSWORD'
-        value: mysqlDbPassword
-      }
-    ]
     envs: [
       {
-        name: 'WORDPRESS_DB_HOST'
-        value: mysql.outputs.ipAddress
+        name: 'KEYCLOAK_ADMIN'
+        value: 'superadmin'
       }
       {
-        name: 'WORDPRESS_DB_USER'
-        value: 'wordpress'
+        name: 'KEYCLOAK_ADMIN_PASSWORD'
+        value: keycloakPassword
       }
       {
-        name: 'WORDPRESS_DB_PASSWORD'
-        secretref: 'WORDPRESS_DB_PASSWORD'
+        name: 'KC_HOSTNAME_STRICT'
+        value: 'false'
       }
       {
-        name: 'WORDPRESS_DB_NAME'
-        value: 'wordpress'
+        name: 'KC_HOSTNAME_STRICT_HTTPS'
+        value: 'false'
+      }
+      {
+        name: 'KC_HTTP_ENABLED'
+        value: 'true'
+      }
+      {
+        name: 'KC_PROXY'
+        value: 'edge'
+      }
+
+      {
+        name: 'KC_DB_DATABASE'
+        value: 'keycloak'
+      }
+      {
+        name: 'KC_DB_USERNAME'
+        value: 'sa'
+      }
+      {
+        name: 'KC_DB_PASSWORD'
+        value: dbPassword
+      }
+      {
+        name: 'KC_DB_URL_HOST'
+        value: mssql.outputs.ipAddress
       }
     ]
   }
 }
 
-module mysql '../modules/containers/instance.bicep' = {
+module mssql '../modules/containers/instance.bicep' = {
   scope: resGroup
-  name: 'mysql'
+  name: 'msqsl'
   params: {
-    name: 'mysql'
-    image: 'mysql:5-debian'
-    port: 3306
-    memoryRequest: '2.0'
+    name: 'mssql'
+    image: 'mcr.microsoft.com/mssql/server:2019-latest'
+    port: 1433
+    memoryRequest: '4.0'
     cpuRequest: 2
     ipAddressType: 'private'
     envVars: [
       {
-        name: 'MYSQL_RANDOM_ROOT_PASSWORD'
-        value: 'yes'
+        name: 'MSSQL_SA_PASSWORD'
+        value: dbPassword
       }
       {
-        name: 'MYSQL_USER'
-        value: 'wordpress'
-      }
-      {
-        name: 'MYSQL_PASSWORD'
-        value: mysqlDbPassword
-      }
-      {
-        name: 'MYSQL_DATABASE'
-        value: 'wordpress'
+        name: 'ACCEPT_EULA'
+        value: 'y'
       }
     ]
 
@@ -141,4 +155,4 @@ module mysql '../modules/containers/instance.bicep' = {
   }
 }
 
-output appURL string = 'https://${wordpress.outputs.fqdn}/'
+//output appURL string = 'https://${keycloak.outputs.fqdn}/'
