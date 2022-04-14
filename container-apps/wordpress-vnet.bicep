@@ -76,17 +76,21 @@ module wordpress '../modules/containers/app.bicep' = {
     image: 'wordpress:latest'
     replicasMin: 1
     replicasMax: 1
+    revisionMode: 'single'
+
     ingressPort: 80
     ingressExternal: true
+
     cpu: '2'
     memory: '4.0Gi'
-    revisionMode: 'single'
+
     secrets: [
       {
-        name: 'WORDPRESS_DB_PASSWORD'
+        name: 'db-password'
         value: mysqlDbPassword
       }
     ]
+
     envs: [
       {
         name: 'WORDPRESS_DB_HOST'
@@ -98,7 +102,7 @@ module wordpress '../modules/containers/app.bicep' = {
       }
       {
         name: 'WORDPRESS_DB_PASSWORD'
-        secretref: 'WORDPRESS_DB_PASSWORD'
+        secretref: 'db-password'
       }
       {
         name: 'WORDPRESS_DB_NAME'
@@ -114,10 +118,10 @@ module mysql '../modules/containers/instance.bicep' = {
   params: {
     name: 'mysql'
     image: 'mysql:5-debian'
-    port: 3306
+
     memoryRequest: '2.0'
     cpuRequest: 2
-    ipAddressType: 'private'
+
     envVars: [
       {
         name: 'MYSQL_RANDOM_ROOT_PASSWORD'
@@ -129,7 +133,7 @@ module mysql '../modules/containers/instance.bicep' = {
       }
       {
         name: 'MYSQL_PASSWORD'
-        value: mysqlDbPassword
+        secureValue: mysqlDbPassword
       }
       {
         name: 'MYSQL_DATABASE'
@@ -137,6 +141,8 @@ module mysql '../modules/containers/instance.bicep' = {
       }
     ]
 
+    port: 3306
+    ipAddressType: 'Private'
     subnetId: network.outputs.subnets[2].id
   }
 }

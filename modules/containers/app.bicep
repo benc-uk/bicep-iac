@@ -18,7 +18,7 @@ param memory string = '.5Gi'
 param replicasMin int = 1
 
 @description('Maximum number of replicas to run, will scale no higher than this')
-param replicasMax int = 10
+param replicasMax int = 1
 
 @description('Port to expose from the app as HTTP ingress, if any')
 param ingressPort int = 0
@@ -42,7 +42,11 @@ param secrets array = []
 @minValue(0)
 param scaleHttpRequests int = 0
 
-@description('Revision mode; multiple or single')
+@description('Revision mode for updates to the app')
+@allowed([
+  'multiple'
+  'single'
+])
 param revisionMode string = 'multiple'
 
 // ===== Variables ============================================================
