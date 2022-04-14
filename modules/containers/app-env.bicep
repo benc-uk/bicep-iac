@@ -36,6 +36,7 @@ resource kubeEnv 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
         sharedKey: logAnalytics.listKeys().primarySharedKey
       }
     }
+
     vnetConfiguration: controlPlaneSubnetId != '' ? {
       internal: loadBalancerInternal
       infrastructureSubnetId: controlPlaneSubnetId
