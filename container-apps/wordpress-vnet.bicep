@@ -1,6 +1,6 @@
-// ============================================================================
-// Deploy a container app into a Vnet
-// ============================================================================
+// ==============================================================================
+// Deploy Wordpress & MySQL into a VNet and link them up, expose only Wordpress
+// ==============================================================================
 
 targetScope = 'subscription'
 
@@ -81,8 +81,8 @@ module wordpress '../modules/containers/app.bicep' = {
     ingressPort: 80
     ingressExternal: true
 
-    cpu: '2'
-    memory: '4.0Gi'
+    cpu: '1'
+    memory: '1Gi'
 
     secrets: [
       {
@@ -119,8 +119,8 @@ module mysql '../modules/containers/instance.bicep' = {
     name: 'mysql'
     image: mySQLImage
 
-    memoryRequest: '2.0'
-    cpuRequest: 2
+    memoryRequest: '1.5'
+    cpuRequest: '0.75'
 
     envVars: [
       {

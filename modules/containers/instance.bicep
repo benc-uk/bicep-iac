@@ -18,7 +18,7 @@ param envVars array = []
 param port int = 80
 
 @description('Number of CPUs to allocate to the container')
-param cpuRequest int = 1
+param cpuRequest string = '1'
 
 @description('Amount of memory to allocate to the container, can be a decimal value')
 param memoryRequest string = '0.5'
@@ -82,7 +82,7 @@ resource containerInstance 'Microsoft.ContainerInstance/containerGroups@2021-10-
 
           resources: {
             requests: {
-              cpu: cpuRequest
+              cpu: json('${cpuRequest}')
               memoryInGB: json('${memoryRequest}')
             }
           }
