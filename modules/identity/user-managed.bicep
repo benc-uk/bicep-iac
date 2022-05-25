@@ -1,12 +1,12 @@
 param name string = resourceGroup().name
-param location string = resourceGroup().location 
+param location string = resourceGroup().location
 
-resource vmIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2021-09-30-preview' = {
   name: name
   location: location
 }
 
-output resourceId string = vmIdentity.id
-output principalId string = vmIdentity.properties.principalId
-output clientId string = vmIdentity.properties.clientId
-output tenantId string = vmIdentity.properties.tenantId
+output resourceId string = identity.id
+output principalId string = identity.properties.principalId
+output clientId string = identity.properties.clientId
+output tenantId string = identity.properties.tenantId

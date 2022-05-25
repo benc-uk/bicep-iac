@@ -1,5 +1,5 @@
-param roleId string 
-param principalId string 
+param roleId string
+param principalId string
 
 resource role 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   name: guid(subscription().subscriptionId)

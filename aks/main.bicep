@@ -4,13 +4,13 @@
 
 targetScope = 'subscription'
 
-param clusterName string = 'aks-cluster'
+param clusterName string = 'temp-aks'
 param location string = deployment().location
 
 param enableMonitoring bool = true
 
 param clusterConfig object = {
-  version: '1.22.6'
+  version: '1.23.5'
   nodeSize: 'Standard_D4s_v4'
   nodeCount: 1
   nodeCountMax: 10
