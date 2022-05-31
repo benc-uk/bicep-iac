@@ -1,3 +1,6 @@
 *.json
 *.kubeconfig
 !bicepconfig.json
+*.key
+*.pem
+*.p12

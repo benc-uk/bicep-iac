@@ -19,12 +19,14 @@ param dockerBridgeCidr string = '10.1.0.1/16'
 param platformReservedCidr string = '10.0.0.0/16'
 param platformReservedDnsIP string = '10.0.0.2'
 
+// ===== Modules & Resources ==================================================
+
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2020-08-01' existing = {
   name: logAnalyticsName
   scope: resourceGroup(logAnalyticsResGroup)
 }
 
-resource kubeEnv 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
+resource managedEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
   location: location
   name: name
 
@@ -48,4 +50,7 @@ resource kubeEnv 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
   }
 }
 
-output id string = kubeEnv.id
+// ===== Outputs ==============================================================
+
+output id string = managedEnv.id
+output name string = managedEnv.name

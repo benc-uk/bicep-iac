@@ -49,11 +49,23 @@ param scaleHttpRequests int = 0
 ])
 param revisionMode string = 'multiple'
 
+@description('Custom domain name, leave blank to disable')
+param customDomainName string = ''
+
+@description('Resource id of cert to use for custom domain, leave blank to disable')
+param customDomainCertId string = ''
+
 // ===== Variables ============================================================
 
 var ingressConfig = {
   external: ingressExternal
   targetPort: ingressPort
+  customDomains: customDomainName != '' ? [
+    {
+      name: customDomainName
+      certificateId: customDomainCertId
+    }
+  ] : []
 }
 
 var probeConfig = probePath != '' ? [
@@ -82,7 +94,7 @@ var httpScaleRule = [
 
 // ===== Modules & Resources ==================================================
 
-resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' = {
+resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   location: location
   name: name
 
@@ -122,3 +134,4 @@ resource containerApp 'Microsoft.App/containerApps@2022-01-01-preview' = {
 output latestRevision string = containerApp.properties.latestRevisionName
 output fqdn string = ingressPort != 0 ? containerApp.properties.configuration.ingress.fqdn : ''
 output id string = containerApp.id
+output customDomainVerificationId string = containerApp.properties.customDomainVerificationId
