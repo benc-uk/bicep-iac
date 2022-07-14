@@ -21,7 +21,7 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
 }
 
-module emailService '../modules/communication/email.bicep' = {
+module emailService '../../modules/communication/email.bicep' = {
   name: 'emailService'
   scope: resGroup
   params: {
@@ -29,7 +29,7 @@ module emailService '../modules/communication/email.bicep' = {
   }
 }
 
-module domain '../modules/communication/domain.bicep' = {
+module domain '../../modules/communication/domain.bicep' = {
   name: 'domain'
   scope: resGroup
   dependsOn: [ emailService ]
@@ -40,7 +40,7 @@ module domain '../modules/communication/domain.bicep' = {
   }
 }
 
-module acs '../modules/communication/service.bicep' = {
+module acs '../../modules/communication/service.bicep' = {
   name: 'acs'
   scope: resGroup
   params: {

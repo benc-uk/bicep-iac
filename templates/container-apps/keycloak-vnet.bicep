@@ -26,7 +26,7 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
 }
 
-module logAnalytics '../modules/monitoring/log-analytics.bicep' = {
+module logAnalytics '../../modules/monitoring/log-analytics.bicep' = {
   scope: resGroup
   name: 'monitoring'
   params: {
@@ -34,7 +34,7 @@ module logAnalytics '../modules/monitoring/log-analytics.bicep' = {
   }
 }
 
-module network '../modules/network/network-multi.bicep' = {
+module network '../../modules/network/network-multi.bicep' = {
   scope: resGroup
   name: 'network'
   params: {
@@ -58,7 +58,7 @@ module network '../modules/network/network-multi.bicep' = {
   }
 }
 
-module containerAppEnv '../modules/containers/app-env.bicep' = {
+module containerAppEnv '../../modules/containers/app-env.bicep' = {
   scope: resGroup
   name: 'containerAppEnv'
   params: {
@@ -70,7 +70,7 @@ module containerAppEnv '../modules/containers/app-env.bicep' = {
   }
 }
 
-module keycloak '../modules/containers/app.bicep' = {
+module keycloak '../../modules/containers/app.bicep' = {
   scope: resGroup
   name: 'keycloak'
   params: {
@@ -130,7 +130,7 @@ module keycloak '../modules/containers/app.bicep' = {
   }
 }
 
-module mssql '../modules/containers/instance.bicep' = {
+module mssql '../../modules/containers/instance.bicep' = {
   scope: resGroup
   name: 'msqsl'
   params: {
@@ -138,7 +138,7 @@ module mssql '../modules/containers/instance.bicep' = {
     image: 'mcr.microsoft.com/mssql/server:2019-latest'
     port: 1433
     memoryRequest: '4.0'
-    cpuRequest: 2
+    cpuRequest: '2'
     ipAddressType: 'Private'
     envVars: [
       {

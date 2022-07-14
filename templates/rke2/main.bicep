@@ -41,10 +41,10 @@ var serverName = 'server'
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: clusterName
-  location: location  
+  location: location
 }
 
-module network '../modules/network/network.bicep' = {
+module network '../../modules/network/network.bicep' = {
   scope: resGroup
   name: 'network'
   params: {
@@ -52,18 +52,18 @@ module network '../modules/network/network.bicep' = {
   }
 }
 
-module subnetNsg '../modules/network/nsg.bicep' = {
+module subnetNsg '../../modules/network/nsg.bicep' = {
   scope: resGroup
   name: 'subnetNsg'
   params: {
-    openPorts: [ 
+    openPorts: [
       '22'
       '6443'
     ]
   }
 }
 
-module vmIdentity '../modules/identity/user-managed.bicep' = {
+module vmIdentity '../../modules/identity/user-managed.bicep' = {
   scope: resGroup
   name: 'vmIdentity'
 }
@@ -105,7 +105,7 @@ module agentConfig 'config/agent.bicep' = {
   }
 }
 
-module server '../modules/compute/linux-vm.bicep' = {
+module server '../../modules/compute/linux-vm.bicep' = {
   scope: resGroup
   name: 'server'
   params: {
@@ -122,7 +122,7 @@ module server '../modules/compute/linux-vm.bicep' = {
   }
 }
 
-module agent '../modules/compute/linux-vm.bicep' = [for i in range(0, agentCount): {
+module agent '../../modules/compute/linux-vm.bicep' = [for i in range(0, agentCount): {
   scope: resGroup
   name: 'agent-${i}'
   params: {
@@ -137,11 +137,11 @@ module agent '../modules/compute/linux-vm.bicep' = [for i in range(0, agentCount
   }
 }]
 
-module roles '../modules/identity/role-assign-sub.bicep' = {
+module roles '../../modules/identity/role-assign-sub.bicep' = {
   scope: resGroup
   // This is NOT actually dependant on these but Azure AD is so awful and slow
   // we need a delay after creating the identity before assigning the role
-  dependsOn: [ 
+  dependsOn: [
     server
     agent
     vmIdentity

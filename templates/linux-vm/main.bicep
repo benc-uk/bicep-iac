@@ -5,7 +5,7 @@
 targetScope = 'subscription'
 
 @description('Name used for resource group, and base name for VM & resources')
-param name string 
+param name string
 @description('Azure region for all resources')
 param location string = deployment().location
 
@@ -36,21 +36,21 @@ param allowSshFromAddress string = '*'
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: name
-  location: location  
+  location: location
 }
 
-module subnetNsg '../modules/network/nsg.bicep' = {
+module subnetNsg '../../modules/network/nsg.bicep' = {
   scope: resGroup
   name: 'subnetNsg'
   params: {
     sourceAddress: allowSshFromAddress
-    openPorts: [ 
+    openPorts: [
       '22'
     ]
   }
 }
 
-module network '../modules/network/network.bicep' = {
+module network '../../modules/network/network.bicep' = {
   scope: resGroup
   name: 'network'
   params: {
@@ -58,7 +58,7 @@ module network '../modules/network/network.bicep' = {
   }
 }
 
-module linuxVm '../modules/compute/linux-vm.bicep' = {
+module linuxVm '../../modules/compute/linux-vm.bicep' = {
   scope: resGroup
   name: 'linuxVm'
 
@@ -74,7 +74,7 @@ module linuxVm '../modules/compute/linux-vm.bicep' = {
   }
 }
 
-module managedIdentity '../modules/identity/user-managed.bicep' = if(assignManagedIdentity) {
+module managedIdentity '../../modules/identity/user-managed.bicep' = if (assignManagedIdentity) {
   scope: resGroup
   name: 'managedIdentity'
 }

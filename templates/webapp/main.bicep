@@ -5,7 +5,7 @@
 targetScope = 'subscription'
 
 @description('Name used for resource group, and base name for all resources')
-param appName string 
+param appName string
 
 @description('Azure region for all resources')
 param location string = deployment().location
@@ -21,15 +21,14 @@ param imageRepo string = 'benc-uk/nodejs-demoapp'
 
 // ===== Variables ============================================================
 
-
 // ===== Modules & Resources ==================================================
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: appName
-  location: location  
+  location: location
 }
 
-module servicePlan '../modules/web/svc-plan-linux.bicep' = if(existingSvcPlanId == '') {
+module servicePlan '../../modules/web/svc-plan-linux.bicep' = if (existingSvcPlanId == '') {
   scope: resGroup
   name: 'servicePlan'
   params: {
@@ -37,7 +36,7 @@ module servicePlan '../modules/web/svc-plan-linux.bicep' = if(existingSvcPlanId 
   }
 }
 
-module webApp '../modules/web/webapp-container.bicep' = {
+module webApp '../../modules/web/webapp-container.bicep' = {
   scope: resGroup
   name: 'webApp'
   params: {

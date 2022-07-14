@@ -23,7 +23,7 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
 }
 
-module logAnalytics '../modules/monitoring/log-analytics.bicep' = {
+module logAnalytics '../../modules/monitoring/log-analytics.bicep' = {
   scope: resGroup
   name: 'monitoring'
   params: {
@@ -31,7 +31,7 @@ module logAnalytics '../modules/monitoring/log-analytics.bicep' = {
   }
 }
 
-module network '../modules/network/network-multi.bicep' = {
+module network '../../modules/network/network-multi.bicep' = {
   scope: resGroup
   name: 'network'
   params: {
@@ -55,7 +55,7 @@ module network '../modules/network/network-multi.bicep' = {
   }
 }
 
-module containerAppEnv '../modules/containers/app-env.bicep' = {
+module containerAppEnv '../../modules/containers/app-env.bicep' = {
   scope: resGroup
   name: 'containerAppEnv'
   params: {
@@ -67,7 +67,7 @@ module containerAppEnv '../modules/containers/app-env.bicep' = {
   }
 }
 
-module wordpress '../modules/containers/app.bicep' = {
+module wordpress '../../modules/containers/app.bicep' = {
   scope: resGroup
   name: 'wordpress'
   params: {
@@ -112,7 +112,7 @@ module wordpress '../modules/containers/app.bicep' = {
   }
 }
 
-module mysql '../modules/containers/instance.bicep' = {
+module mysql '../../modules/containers/instance.bicep' = {
   scope: resGroup
   name: 'mysql'
   params: {

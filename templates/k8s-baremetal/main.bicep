@@ -50,17 +50,17 @@ var vmUserName = 'kube'
 
 resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: clusterName
-  location: location  
+  location: location
 }
 
 //
 // NSG to allow kube-api (port 6443) and SSH access, SSH is behind a jumpbox
 //
-module subnetNsg '../modules/network/nsg.bicep' = {
+module subnetNsg '../../modules/network/nsg.bicep' = {
   scope: resGroup
   name: 'subnetNsg'
   params: {
-    openPorts: [ 
+    openPorts: [
       '22'
       '6443'
     ]
@@ -70,7 +70,7 @@ module subnetNsg '../modules/network/nsg.bicep' = {
 //
 // VNet and default subnet
 //
-module network '../modules/network/network.bicep' = {
+module network '../../modules/network/network.bicep' = {
   scope: resGroup
   name: 'network'
   params: {
@@ -81,7 +81,7 @@ module network '../modules/network/network.bicep' = {
 //
 // User managed identity to assign to the cluster for both KeyVault access and for the kube cloud provider
 //
-module clusterIdentity '../modules/identity/user-managed.bicep' = {
+module clusterIdentity '../../modules/identity/user-managed.bicep' = {
   scope: resGroup
   name: 'clusterIdentity'
 }
@@ -89,7 +89,7 @@ module clusterIdentity '../modules/identity/user-managed.bicep' = {
 //
 // Use a seperate subnet for the control plane, only so we have a more stable IP range to give to HAProxy
 //
-module controlPlaneSubnet '../modules/network/subnet.bicep' = {
+module controlPlaneSubnet '../../modules/network/subnet.bicep' = {
   scope: resGroup
   name: 'controlPlaneSubnet'
   params: {
@@ -103,9 +103,9 @@ module controlPlaneSubnet '../modules/network/subnet.bicep' = {
 //
 // Key Vault used to hold secrets and synchronize cluster creation
 //
-module keyVault '../modules/misc/keyvault.bicep' = {
+module keyVault '../../modules/misc/keyvault.bicep' = {
   scope: resGroup
-  name: 'keyVault'  
+  name: 'keyVault'
   params: {
     // At a minimum add our clusterIdentity, but also any extra keyVaultAccessObjectId if not blank
     objectIdsWithAccess: keyVaultAccessObjectId != '' ? [
@@ -128,7 +128,7 @@ module keyVault '../modules/misc/keyvault.bicep' = {
 //
 module controlPlaneCloudInit './cloudinit/control-plane.bicep' = {
   scope: resGroup
-  name: 'controlPlaneCloudInit'  
+  name: 'controlPlaneCloudInit'
   params: {
     kubernetesVersion: kubernetesVersion
     // IP of the control plane load balancer, depends on if this is a public cluster or not
@@ -158,7 +158,7 @@ module workerCloudInit './cloudinit/workers.bicep' = {
 //
 // VM scale set to run the control plane nodes
 //
-module controlPlane '../modules/compute/linux-vmss.bicep' = {
+module controlPlane '../../modules/compute/linux-vmss.bicep' = {
   scope: resGroup
   name: 'controlPlane'
 
@@ -184,7 +184,7 @@ module controlPlane '../modules/compute/linux-vmss.bicep' = {
 //
 // VM scale set to run the worker nodes
 //
-module workers '../modules/compute/linux-vmss.bicep' = {
+module workers '../../modules/compute/linux-vmss.bicep' = {
   scope: resGroup
   name: 'workers'
 
@@ -204,11 +204,11 @@ module workers '../modules/compute/linux-vmss.bicep' = {
 //
 // Assign the user identity the Contributor role at the resource group level
 // 
-module roles '../modules/identity/role-assign-rg.bicep' = {
+module roles '../../modules/identity/role-assign-rg.bicep' = {
   scope: resGroup
   // This is NOT actually dependant on these but Azure AD is so awful and slow
   // we need a delay after creating the identity before assigning the role
-  dependsOn: [ 
+  dependsOn: [
     controlPlane
     clusterIdentity
   ]
@@ -223,9 +223,9 @@ module roles '../modules/identity/role-assign-rg.bicep' = {
 //
 // Configure the VM jumpbox if it's a private cluster or deployJumpBox is set
 //
-module jumpBoxCloudInit './cloudinit/jumpbox.bicep' = if(deployJumpBox || !publicCluster) {
+module jumpBoxCloudInit './cloudinit/jumpbox.bicep' = if (deployJumpBox || !publicCluster) {
   scope: resGroup
-  name: 'jumpBoxCloudInit'  
+  name: 'jumpBoxCloudInit'
   params: {
     keyVaultName: keyVault.outputs.resourceName
   }
@@ -234,7 +234,7 @@ module jumpBoxCloudInit './cloudinit/jumpbox.bicep' = if(deployJumpBox || !publi
 //
 // Deploy a SSH jumpbox VM if it's a private cluster or deployJumpBox is set
 //
-module jumpBox '../modules/compute/linux-vm.bicep' = if(deployJumpBox || !publicCluster) {
+module jumpBox '../../modules/compute/linux-vm.bicep' = if (deployJumpBox || !publicCluster) {
   scope: resGroup
   name: 'jumpBox'
 
@@ -254,7 +254,7 @@ module jumpBox '../modules/compute/linux-vm.bicep' = if(deployJumpBox || !public
 //
 //  A public IP to access the control plane (kube api-server) if cluster is public
 //
-module controlPlanePublicIp '../modules/network/public-ip.bicep' = if(publicCluster) {
+module controlPlanePublicIp '../../modules/network/public-ip.bicep' = if (publicCluster) {
   scope: resGroup
   name: 'controlPlanePublicIp'
 }
@@ -262,9 +262,9 @@ module controlPlanePublicIp '../modules/network/public-ip.bicep' = if(publicClus
 //
 // Place control plane VMSS behind this Azure LB if cluster is public
 //
-module controlPlaneLoadBalancer '../modules/network/load-balancer.bicep' = if(publicCluster) {
+module controlPlaneLoadBalancer '../../modules/network/load-balancer.bicep' = if (publicCluster) {
   scope: resGroup
-  name: 'controlPlaneLoadBalancer'  
+  name: 'controlPlaneLoadBalancer'
   params: {
     port: 6443
     publicIpId: publicCluster ? controlPlanePublicIp.outputs.resourceId : ''
@@ -275,15 +275,15 @@ module controlPlaneLoadBalancer '../modules/network/load-balancer.bicep' = if(pu
 //
 // Configure a VM to be a load balancer running HAProxy if cluster is private
 //
-module haproxyCloudInit './cloudinit/load-balancer.bicep' = if(!publicCluster) {
+module haproxyCloudInit './cloudinit/load-balancer.bicep' = if (!publicCluster) {
   scope: resGroup
-  name: 'privateLBInit'  
+  name: 'privateLBInit'
 }
 
 //
 // Deploy VM as a load balancer running HAProxy if cluster is private
 //
-module haproxyLoadBalancer '../modules/compute/linux-vm.bicep' = if(!publicCluster) {
+module haproxyLoadBalancer '../../modules/compute/linux-vm.bicep' = if (!publicCluster) {
   scope: resGroup
   name: 'haproxyLoadBalancer'
 

@@ -21,17 +21,17 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2020-06-01' = {
   location: location
 }
 
-module network '../modules/network/network.bicep' = {
+module network '../../modules/network/network.bicep' = {
   scope: resGroup
   name: 'network'
 }
 
-module logAnalytics '../modules/monitoring/log-analytics.bicep' = if (enableMonitoring) {
+module logAnalytics '../../modules/monitoring/log-analytics.bicep' = if (enableMonitoring) {
   scope: resGroup
   name: 'monitoring'
 }
 
-module aks '../modules/kubernetes/aks.bicep' = {
+module aks '../../modules/kubernetes/aks.bicep' = {
   scope: resGroup
   name: 'aks'
   params: {

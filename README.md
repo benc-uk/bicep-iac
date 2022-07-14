@@ -2,16 +2,21 @@
 
 This is a personal set of reusable Bicep modules and templates for various use cases, mainly container based services, VMs and Kubernetes.
 
-## Shared Modules
+## 🧩 Shared Modules
 
-The [shared modules](./modules) folder holds reusable building blocks, used by other templates.
+The [modules](./modules) folder holds reusable building blocks, used by other templates.
 
-## Templates
+## 📝 Templates
 
-- [Containerized Function App](./function-app-container)
-- [Azure Kubernetes Service](./aks)
-- [Azure Container Apps](./container-apps)
-- [Bare Metal Kubernetes](./k8s-baremetal)
-- [Linux VM](./linux-vm)
-- [Azure Web Apps](./webapp)
-- [Rancher Kubernetes Engine](./rke2)
+These are example templates using the above modules:
+
+- [Containerized Function App](./templates/function-app-container)
+- [Azure Kubernetes Service](./templates/aks)
+- [Azure Container Apps](./templates/container-apps)
+- [Azure Function App in Container](./templates/function-app-container)
+- [Azure Container Apps](./templates/container-apps)
+- [Bare Metal Kubernetes](./templates/k8s-baremetal)
+- [Linux VM](./templates/linux-vm)
+- [Azure Web Apps](./templates/webapp)
+- [Rancher Kubernetes Engine](./templates/rke2)
+- [Azure Communcation Services for Email](./templates/acs-email)

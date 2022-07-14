@@ -8,12 +8,12 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
 }
 
-module network '../modules/network/network.bicep' = {
+module network '../../modules/network/network.bicep' = {
   scope: resGroup
   name: 'network'
 }
 
-module appGateway '../modules/network/app-gateway.bicep' = {
+module appGateway '../../modules/network/app-gateway.bicep' = {
   name: 'app-gw'
   scope: resGroup
 

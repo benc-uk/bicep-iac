@@ -25,26 +25,26 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 }
 
 // Functions apps need a storage account
-module storage '../modules/storage/account.bicep' = {
+module storage '../../modules/storage/account.bicep' = {
   scope: resGroup
   name: 'storage'
 }
 
 // We create an ACR just as an example, it's not used.
 // The image deploy will be pulled from the registry & repo parameter above
-module acr '../modules/containers/registry.bicep' = {
+module acr '../../modules/containers/registry.bicep' = {
   scope: resGroup
   name: 'acr'
 }
 
 // Functions apps also need App Insights
-module appInsights '../modules/monitoring/app-insights.bicep' = {
+module appInsights '../../modules/monitoring/app-insights.bicep' = {
   scope: resGroup
   name: 'appInsights'
 }
 
 // App Service Plan to host the Function App
-module svcPlan '../modules/web/svc-plan-linux.bicep' = {
+module svcPlan '../../modules/web/svc-plan-linux.bicep' = {
   scope: resGroup
   name: 'svcPlan'
   params: {
@@ -54,7 +54,7 @@ module svcPlan '../modules/web/svc-plan-linux.bicep' = {
 }
 
 // Example of adding managed identity 
-module managedIdentity '../modules/identity/user-managed.bicep' = {
+module managedIdentity '../../modules/identity/user-managed.bicep' = {
   scope: resGroup
   name: 'managedIdentity'
 }
@@ -77,7 +77,7 @@ resource role 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   ]
 }
 
-module functionApp '../modules/web/function-app-container.bicep' = {
+module functionApp '../../modules/web/function-app-container.bicep' = {
   scope: resGroup
   name: 'functionApp'
   params: {

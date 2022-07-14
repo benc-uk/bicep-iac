@@ -38,12 +38,12 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
 }
 
-module logAnalytics '../modules/monitoring/log-analytics.bicep' = {
+module logAnalytics '../../modules/monitoring/log-analytics.bicep' = {
   scope: resGroup
   name: 'monitoring'
 }
 
-module containerAppEnv '../modules/containers/app-env.bicep' = {
+module containerAppEnv '../../modules/containers/app-env.bicep' = {
   scope: resGroup
   name: 'containerAppEnv'
   params: {
@@ -52,7 +52,7 @@ module containerAppEnv '../modules/containers/app-env.bicep' = {
   }
 }
 
-module cert '../modules/containers/certificate.bicep' = {
+module cert '../../modules/containers/certificate.bicep' = {
   scope: resGroup
   name: 'cert'
 
@@ -62,7 +62,7 @@ module cert '../modules/containers/certificate.bicep' = {
   }
 }
 
-module dnsCnameRecord '../modules/dns/cname-record.bicep' = {
+module dnsCnameRecord '../../modules/dns/cname-record.bicep' = {
   scope: resourceGroup(dnsZoneResGroup)
   name: 'dns-cname'
   params: {
@@ -72,7 +72,7 @@ module dnsCnameRecord '../modules/dns/cname-record.bicep' = {
   }
 }
 
-module dnsTxtRecord '../modules/dns/txt-record.bicep' = {
+module dnsTxtRecord '../../modules/dns/txt-record.bicep' = {
   scope: resourceGroup(dnsZoneResGroup)
   name: 'dns-txt'
   params: {
@@ -84,7 +84,7 @@ module dnsTxtRecord '../modules/dns/txt-record.bicep' = {
   }
 }
 
-module demoApp '../modules/containers/app.bicep' = {
+module demoApp '../../modules/containers/app.bicep' = {
   scope: resGroup
   name: 'demoApp'
   params: {
