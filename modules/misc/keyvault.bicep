@@ -3,10 +3,7 @@ param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
 param location string = resourceGroup().location
 
 @description('SKU of the KeyVault')
-@allowed([
-  'premium'
-  'standard'
-])
+@allowed([ 'premium', 'standard' ])
 param sku string = 'standard'
 
 @description('Array of OID GUIDs of indentities in Azure AD to be given access to secrets')
@@ -24,7 +21,7 @@ var resourceName = '${name}${suffix}'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: resourceName
-  location: location 
+  location: location
   properties: {
     tenantId: subscription().tenantId
 

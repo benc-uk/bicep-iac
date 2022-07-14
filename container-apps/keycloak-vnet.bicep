@@ -139,7 +139,7 @@ module mssql '../modules/containers/instance.bicep' = {
     port: 1433
     memoryRequest: '4.0'
     cpuRequest: 2
-    ipAddressType: 'private'
+    ipAddressType: 'Private'
     envVars: [
       {
         name: 'MSSQL_SA_PASSWORD'
