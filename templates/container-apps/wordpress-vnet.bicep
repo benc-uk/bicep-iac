@@ -5,7 +5,7 @@
 targetScope = 'subscription'
 
 @description('Name used for resource group, and default base name for all resources')
-param appName string = 'temp-wordpress'
+param appName string
 
 @description('Azure region for all resources')
 param location string = deployment().location

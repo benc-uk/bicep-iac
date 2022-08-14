@@ -4,15 +4,15 @@ param location string = resourceGroup().location
 
 @allowed([
   'CapacityReservation'
-  'Free' 
-  'LACluster' 
-  'PerGB2018' 
-  'PerNode' 
-  'Premium' 
-  'Standalone' 
+  'Free'
+  'LACluster'
+  'PerGB2018'
+  'PerNode'
+  'Premium'
+  'Standalone'
   'Standard'
 ])
-param sku string = 'Free'
+param sku string = 'PerGB2018'
 
 // ===== Variables ============================================================
 
@@ -24,8 +24,8 @@ var resourceName = '${name}${suffix}'
 resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
   location: location
   name: resourceName
-  properties:{
-    sku:{
+  properties: {
+    sku: {
       name: sku
     }
   }

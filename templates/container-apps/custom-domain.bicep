@@ -13,7 +13,7 @@
 targetScope = 'subscription'
 
 @description('Name used for resource group, and default base name for all resources')
-param appName string = 'temp-demoapp'
+param appName string
 
 @description('Azure region for all resources')
 param location string = deployment().location
@@ -25,9 +25,12 @@ param image string = 'ghcr.io/benc-uk/nodejs-demoapp:latest'
 param port int = 3000
 
 // Parameters for your custom domain, and DNS Zone
-param domainPrefix string = 'myapp'
-param dnsZone string = 'benco.io'
-param dnsZoneResGroup string = 'shared'
+@description('Domain name for the app, will create a DNS record')
+param domainPrefix string
+@description('DNS zone to configure, must already exist')
+param dnsZone string
+@description('Resource group holding the DNS zone')
+param dnsZoneResGroup string
 
 // ===== Variables ============================================================
 
@@ -96,7 +99,7 @@ module demoApp '../../modules/containers/app.bicep' = {
     ingressPort: port
     ingressExternal: true
     customDomainCertId: cert.outputs.id
-    customDomainName: 'myapp.benco.io'
+    customDomainName: '${domainPrefix}.${dnsZone}'
 
     scaleHttpRequests: 200
 
