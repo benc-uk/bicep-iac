@@ -1,3 +1,7 @@
+// ============================================================================
+// A module to deploy managed application certificate
+// ============================================================================
+
 param name string = resourceGroup().name
 param location string = resourceGroup().location
 

@@ -1,3 +1,7 @@
+// ============================================================================
+// Container App Environment to host container apps
+// ============================================================================
+
 param name string = resourceGroup().name
 param location string = resourceGroup().location
 

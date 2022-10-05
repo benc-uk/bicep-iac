@@ -12,7 +12,7 @@ param dnsSuffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)
 param image string
 
 @description('Array of env vars to set, in the form of [{name: "VARNAME", value: "VARVALUE"}]')
-param envVars array = []
+param envs array = []
 
 @description('Port the container listens on, and will be exposed externally')
 param port int = 80
@@ -71,7 +71,7 @@ resource containerInstance 'Microsoft.ContainerInstance/containerGroups@2021-10-
         name: '${name}-container'
         properties: {
           image: image
-          environmentVariables: envVars
+          environmentVariables: envs
 
           ports: [
             {
