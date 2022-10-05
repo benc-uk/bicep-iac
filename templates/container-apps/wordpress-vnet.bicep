@@ -46,11 +46,6 @@ module network '../../modules/network/network-multi.bicep' = {
         name: 'apps'
         cidr: '10.75.8.0/21'
       }
-      {
-        name: 'backend'
-        cidr: '10.75.16.0/24'
-        delegation: 'Microsoft.ContainerInstance/containerGroups'
-      }
     ]
   }
 }
@@ -81,7 +76,7 @@ module wordpress '../../modules/containers/app.bicep' = {
     ingressPort: 80
     ingressExternal: true
 
-    cpu: '1'
+    cpu: '0.5'
     memory: '1Gi'
 
     secrets: [
@@ -94,7 +89,7 @@ module wordpress '../../modules/containers/app.bicep' = {
     envs: [
       {
         name: 'WORDPRESS_DB_HOST'
-        value: mysql.outputs.ipAddress
+        value: 'mysql'
       }
       {
         name: 'WORDPRESS_DB_USER'
@@ -112,17 +107,33 @@ module wordpress '../../modules/containers/app.bicep' = {
   }
 }
 
-module mysql '../../modules/containers/instance.bicep' = {
+module mysql '../../modules/containers/app.bicep' = {
   scope: resGroup
   name: 'mysql'
   params: {
     name: 'mysql'
     image: mySQLImage
+    environmentId: containerAppEnv.outputs.id
 
-    memoryRequest: '1.5'
-    cpuRequest: '0.75'
+    replicasMin: 1
+    replicasMax: 1
+    revisionMode: 'single'
 
-    envVars: [
+    ingressPort: 3306
+    ingressExternal: false
+    ingressTransport: 'tcp'
+
+    cpu: '1'
+    memory: '2Gi'
+
+    secrets: [
+      {
+        name: 'db-password'
+        value: mysqlDbPassword
+      }
+    ]
+
+    envs: [
       {
         name: 'MYSQL_RANDOM_ROOT_PASSWORD'
         value: 'yes'
@@ -133,17 +144,13 @@ module mysql '../../modules/containers/instance.bicep' = {
       }
       {
         name: 'MYSQL_PASSWORD'
-        secureValue: mysqlDbPassword
+        secretref: 'db-password'
       }
       {
         name: 'MYSQL_DATABASE'
         value: 'wordpress'
       }
     ]
-
-    port: 3306
-    ipAddressType: 'Private'
-    subnetId: network.outputs.subnets[2].id
   }
 }
 

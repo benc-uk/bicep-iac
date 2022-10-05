@@ -14,7 +14,7 @@ Wordpress is old and crummy, but it provides a good example of application that 
 
 - Placing Container Apps into a VNet to access other resources privately
 - Creating a VNET & subnets for use with Container Apps
-- Combining with Container Instances, also deployed into the VNert
+- Deploying Container Apps on both TCP and HTTPs 
 
 ### Quick Deploy
 
@@ -23,10 +23,6 @@ Deploy as a subscription level deployment using the Azure CLI, taking the defaul
 ```bash
 az deployment sub create --template-file ./wordpress-vnet.bicep --location westeurope
 ```
-
-### Limitations
-
-Using Container Instances to run a database is a _spectacularly_ bad idea with zero data persistence. Swapping this to Azure SQL with private link is an exercise left to the reader.
 
 ## 📜 Simple
 
