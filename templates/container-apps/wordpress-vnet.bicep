@@ -73,6 +73,9 @@ module wordpress '../../modules/containers/app.bicep' = {
     replicasMax: 1
     revisionMode: 'single'
 
+    probePath: '/'
+    probePort: 80
+
     ingressPort: 80
     ingressExternal: true
 
