@@ -16,9 +16,9 @@ The cluster consists of the following Azure resources:
 - VM scale set for the Kubernetes control plane
 - VM scale set for the Kubernetes worker nodes
 - Azure KeyVault
-- User managed identity for use with the Kubernetes cloud provider for Azure 
+- User managed identity for use with the Kubernetes cloud provider for Azure
 - Optional: Jump box VM
-- Load balancer 
+- Load balancer
   - For public clusters, Azure Load Balancer is put in front of control plane, with a public IP.
   - For private clusters, HAProxy load balancer running on a VM with a backend set to the range of IPs used by the control plane nodes.
 
@@ -41,20 +41,20 @@ az deployment sub create --template-file main.bicep \
 
 ## Parameters
 
-It's important to assign your own user OID in Azure AD to the `keyVaultAccessObjectId` parameter, otherwise you will not have permissions to fetch the secrets from the KeyVault needed to access the cluster. You can get this from running `az ad signed-in-user show --query 'objectId' -o tsv` or other means.
+It's important to assign your own user id in Azure AD to the `keyVaultAccessObjectId` parameter, otherwise you will not have permissions to fetch the secrets from the KeyVault needed to access the cluster. You can get this from running `az ad signed-in-user show --query 'objectId' -o tsv` or other means.
 
-| Name | Description | Type | Default |
-|------|-------------|------|---------|
-| clusterName | Name used for resource group, and base name for most resources | string | *none* |
-| location | Azure region for all resources | string | *Same as deployment* |
-| publicCluster | Switch between public/private clusters, changes type of load balancer, and removes public IP | bool | true |
-| controlPlaneCount | Number of nodes in the control plane, should be a odd number | int | 1 |
-| workerCount | Number of worker/agent nodes | int | 3 |
-| workerVmSize | Azure VM instance size for the worker nodes | string | Standard_B2s |
-| controlPlaneVmSize | Azure VM instance size for the control plane nodes | string | Standard_B2s |
-| keyVaultAccessObjectId | Assign this Azure AD object id access to the KeyVault. See comment above. | string | *none* |
-| deployJumpBox | Enable to deploy a jump box VM for SSH access to nodes. Always deployed if *publicCluster* is false | bool | false |
-| jumpBoxPublicKey | SSH key to connect to the jumpbox, if unset password auth will be used, with the password in the KeyVault | string | *blank* |
+| Name                   | Description                                                                                               | Type   | Default              |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- | ------ | -------------------- |
+| clusterName            | Name used for resource group, and base name for most resources                                            | string | _none_               |
+| location               | Azure region for all resources                                                                            | string | _Same as deployment_ |
+| publicCluster          | Switch between public/private clusters, changes type of load balancer, and removes public IP              | bool   | true                 |
+| controlPlaneCount      | Number of nodes in the control plane, should be a odd number                                              | int    | 1                    |
+| workerCount            | Number of worker/agent nodes                                                                              | int    | 3                    |
+| workerVmSize           | Azure VM instance size for the worker nodes                                                               | string | Standard_B2s         |
+| controlPlaneVmSize     | Azure VM instance size for the control plane nodes                                                        | string | Standard_B2s         |
+| keyVaultAccessObjectId | Assign this Azure AD object id access to the KeyVault. See comment above.                                 | string | _none_               |
+| deployJumpBox          | Enable to deploy a jump box VM for SSH access to nodes. Always deployed if _publicCluster_ is false       | bool   | false                |
+| jumpBoxPublicKey       | SSH key to connect to the jumpbox, if unset password auth will be used, with the password in the KeyVault | string | _blank_              |
 
 ## Cluster Access
 
@@ -78,11 +78,11 @@ The cluster is boot strapped by **kubeadm** as follows
   - If the hostname ends `000000` this is the first node, and it runs `kubeadm init` to initialize the cluster, once the cluster is initialized, the following steps are carried out:
     - Install Flannel CNI
     - Apply `/root/default-sc.yaml` to create a default storage class
-    - Apply `/root/metrics-server.yaml` to create a default storage class
+    - Apply `/root/metrics-server.yaml` to deploy the metrics server
     - Upload the `/etc/kubernetes/admin.conf` file to KeyVault as a secret named `kubeconfig`
   - If the hostname is anything else then this node waits for the control plane to be ready (by polling that port 6443 is open) then runs `kubeadm join`
 - In both cases the `/root/kubeadm.conf` file is used to provide initialization details and cluster configuration for control plane nodes.
-- The `kubeadm.conf` enables the in-tree Azure cloud provider with kubelet extra args and points it to `/etc/kubernetes/cloud.conf` and this file is created dynamically by Bicep at deployment time.
+- The `kubeadm.conf` file enables the in-tree Azure cloud provider with kubelet extra args and points it to `/etc/kubernetes/cloud.conf` and this file is created dynamically by Bicep at deployment time.
 
 Worker nodes join the cluster by cloud-init running a different script, `kubeadm-worker.sh` this polls and checks the control-plane is ready (using the same port 6443 check) then runs `kubeadm join` with `kubeadm-worker.conf` config file (which also enables the in-tree Azure cloud provider using `/etc/kubernetes/cloud.conf`)
 
@@ -94,7 +94,7 @@ Worker nodes join the cluster by cloud-init running a different script, `kubeadm
 
 Private clusters can be deployed by setting `publicCluster` to false, however an internal Azure Load Balancer (also refereed to as ILB) can't be used for several reasons:
 
-- It is MAJOR a limitation of Azure that "hairpinning" is not supported on internal load balancers, this means the VMs in the load balancer back end CAN NOT access the frontend / VIP of the load balancer [see this note in the docs](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-troubleshoot-backend-traffic#cause-4-accessing-the-internal-load-balancer-frontend-from-the-participating-load-balancer-backend-pool-vm)
+- It is MAJOR a limitation of Azure that "hairpinning" is not supported on internal load balancers, this means the VMs in the load balancer back end CAN NOT access the frontend / VIP of the load balancer [see this note in the docs](https://learn.microsoft.com/en-us/azure/load-balancer/load-balancer-troubleshoot-backend-traffic#cause-4-access-of-the-internal-load-balancer-frontend-from-the-participating-load-balancer-backend-pool-vm)
 - How kubeadm init / join operates https://github.com/kubernetes/kubeadm/issues/1685 means that it tries to talk to the load-balancer frontend address
 
 In order to workaround this, a VM running HAProxy is used instead of an Azure Load Balancer.

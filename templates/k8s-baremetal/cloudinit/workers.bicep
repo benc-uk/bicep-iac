@@ -18,11 +18,13 @@ param preRunCmd string = 'ls'
 
 // ===== Variables ============================================================
 
+// Bash scripts injected as part of cloud init, note use of format() to inject variables
 var containerdScript = loadTextContent('scripts/install-containerd.sh')
 var kubeadmScript = format(loadTextContent('scripts/install-kubeadm.sh'), kubernetesVersion)
 var cpReadyScript = format(loadTextContent('scripts/wait-cp-ready.sh'))
 var nodeJoinScript = format(loadTextContent('scripts/kubeadm-worker.sh'), controlPlaneExternalHost)
 
+// Other config files, heavily parameterized using format()
 var kubeadmConf = format(loadTextContent('other/kubeadm-worker.conf'), controlPlaneExternalHost, bootStrapToken)
 var cloudConf = format(loadTextContent('other/cloud.conf'), tenantId, clientId, subscriptionId, clusterName, location)
 
@@ -66,4 +68,5 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
-output cloudInit string = format(cloudConfig,  containerdScript, kubeadmScript, cpReadyScript, nodeJoinScript, kubeadmConf, cloudConf, preRunCmd)
+// Completed cloud-config is effectively exported from this Bicep using this output
+output cloudInit string = format(cloudConfig, containerdScript, kubeadmScript, cpReadyScript, nodeJoinScript, kubeadmConf, cloudConf, preRunCmd)

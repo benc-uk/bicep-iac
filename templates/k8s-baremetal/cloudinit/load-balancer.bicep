@@ -2,6 +2,7 @@
 // Module for cloud init on the HAProxy load balancer
 // ==================================================================================
 
+// Any config files, heavily parameterized using format()
 var haproxyConf = loadTextContent('other/haproxy.cfg')
 
 var cloudConfig = '''
@@ -20,4 +21,5 @@ runcmd:
 '''
 
 // Heavy use of format function as Bicep doesn't yet support interpolation on multiline strings
+// Completed cloud-config is effectively exported from this Bicep using this output
 output cloudInit string = format(cloudConfig, haproxyConf)

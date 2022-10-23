@@ -15,7 +15,7 @@ if [[ $CLUSTER_IP == *"10."* ]]; then
 fi
 
 echo "🌐 Checking cluster API at $CLUSTER_IP is accepting traffic"
-nc -z $CLUSTER_IP 6443 -w 5
+nc -z "$CLUSTER_IP" 6443 -w 5
 if [ $? -ne 0 ]; then
   echo "💥 Error - Cluster API is not ready. Exiting..."
   return 1
@@ -28,10 +28,10 @@ FILE=$(realpath azure.kubeconfig)
 [[ $KV_NAME ]] || { echo "Failed to get KeyVault name. Exiting."; exit 1; }
 
 echo "📜 Fetching kubeconfig from KeyVault $KV_NAME"
-az keyvault secret show --name kubeconfig --vault-name $KV_NAME > /dev/null
+az keyvault secret show --name kubeconfig --vault-name "$KV_NAME" > /dev/null
 
 if [ $? -eq 0 ]; then
-  az keyvault secret show --name kubeconfig --vault-name $KV_NAME | jq -e -r '.value' > $FILE
+  az keyvault secret show --name kubeconfig --vault-name "$KV_NAME" -o json | jq -e -r '.value' > "$FILE"
   echo "🧰 Download successful. Setting KUBECONFIG to $FILE"
   echo "🤓 Now run kubectl as normal, e.g. kubectl get nodes"
   export KUBECONFIG=$FILE
