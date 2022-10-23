@@ -36,12 +36,12 @@ For fully automated & unattended deployment it employees several techniques & tr
 az deployment sub create --template-file main.bicep \
   --location "uksouth" \
   --parameters clusterName="my-cluster" \
-  keyVaultAccessObjectId="$(az ad signed-in-user show --query 'objectId' -o tsv)"
+  keyVaultAccessObjectId="$(az ad signed-in-user show --query 'id' -o tsv)"
 ```
 
 ## Parameters
 
-It's important to assign your own user id in Azure AD to the `keyVaultAccessObjectId` parameter, otherwise you will not have permissions to fetch the secrets from the KeyVault needed to access the cluster. You can get this from running `az ad signed-in-user show --query 'objectId' -o tsv` or other means.
+It's important to assign your own user id in Azure AD to the `keyVaultAccessObjectId` parameter, otherwise you will not have permissions to fetch the secrets from the KeyVault needed to access the cluster. You can get this from running `az ad signed-in-user show --query 'id' -o tsv` or other means.
 
 | Name                   | Description                                                                                               | Type   | Default              |
 | ---------------------- | --------------------------------------------------------------------------------------------------------- | ------ | -------------------- |

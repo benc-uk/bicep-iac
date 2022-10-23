@@ -10,8 +10,9 @@ param clusterName string
 param location string = deployment().location
 
 // Cluster configuration
+// See https://kubernetes.io/releases/
 @description('Version of Kubernetes to deploy x.yy.z')
-param kubernetesVersion string = '1.21.3'
+param kubernetesVersion string = '1.25.3'
 @description('Number of nodes in the control plane, should be a odd number')
 param controlPlaneCount int = 1
 @description('Number of worker/agent nodes')
