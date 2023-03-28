@@ -13,8 +13,6 @@ param logAnalyticsResGroup string
 
 @description('Custom VNet; subnet to be used for the control plane. Leave when using a managed VNet')
 param controlPlaneSubnetId string = ''
-@description('Custom VNet; subnet to be used for the apps. Leave when using a managed VNet')
-param appsSubnetId string = ''
 @description('Custom VNet; what type of Load Balancer to use. Leave when using a managed VNet')
 param loadBalancerInternal bool = false
 
@@ -46,7 +44,6 @@ resource managedEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
     vnetConfiguration: controlPlaneSubnetId != '' ? {
       internal: loadBalancerInternal
       infrastructureSubnetId: controlPlaneSubnetId
-      runtimeSubnetId: appsSubnetId
       dockerBridgeCidr: dockerBridgeCidr
       platformReservedCidr: platformReservedCidr
       platformReservedDnsIP: platformReservedDnsIP
