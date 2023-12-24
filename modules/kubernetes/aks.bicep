@@ -11,6 +11,7 @@ param netVnet string
 @description('Name of subnet in the VNet')
 param netSubnet string
 
+// Leave empty to disable monitoring add on
 @description('OPTIONAL: Provide a workspace ID to enable monitoring add on')
 param logsWorkspaceId string = ''
 
@@ -20,8 +21,11 @@ param config object = {
   nodeSize: 'Standard_DS2_v2'
   nodeCount: 2
   nodeCountMax: 10
+  maxPodsPerNode: 30
+  enableOIDC: false
 }
 
+// Optional to BYO identity for the cluster
 @description('OPTIONAL: Provide a MI to assign to the AKS cluster')
 param clusterIdentity string = ''
 
@@ -45,10 +49,12 @@ var addOns = {
   } : {}
 }
 
+// Kubelet identity is used by the nodes, mainly to access ACR
 var identityProfile = kubeletIdentity.resourceId != '' ? {
   kubeletidentity: kubeletIdentity
 } : {}
 
+// Cluster identity is used by the cluster, e.g. to create/update load balancers
 var identityConfig = clusterIdentity != '' ? {
   type: 'UserAssigned'
   userAssignedIdentities: {
@@ -60,7 +66,7 @@ var identityConfig = clusterIdentity != '' ? {
 
 // ===== Modules & Resources ==================================================
 
-resource aks 'Microsoft.ContainerService/managedClusters@2022-03-01' = {
+resource aks 'Microsoft.ContainerService/managedClusters@2022-09-01' = {
   name: name
   location: location
 
@@ -69,6 +75,11 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-03-01' = {
   properties: {
     dnsPrefix: name
     kubernetesVersion: config.version
+
+    oidcIssuerProfile: {
+      enabled: config.enableOIDC
+    }
+
     agentPoolProfiles: [
       {
         name: 'default'
@@ -79,6 +90,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-03-01' = {
         count: config.nodeCount
         minCount: config.nodeCount
         maxCount: config.nodeCountMax
+        maxPods: config.maxPodsPerNode
       }
     ]
 

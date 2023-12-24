@@ -15,7 +15,7 @@ for varName in AZURE_BASE_NAME AZURE_REGION; do
   varVal=$(eval echo "\${$varName}")
   [ -z "$varVal" ] && { echo "💥 Error! Required variable '$varName' is unset!"; varUnset=true; }
 done
-[ $varUnset ] && exit 1
+[ "$varUnset" ] && exit 1
 
 echo -e "\n🚀 Deployment started..."
 echo -e "  📂 Resource group: $AZURE_BASE_NAME"
@@ -34,7 +34,7 @@ domainResourceId=$(az deployment sub show --name "$DEPLOY_NAME" --query 'propert
 domainName=$(az deployment sub show --name "$DEPLOY_NAME" --query 'properties.outputs.domainName.value' -o tsv)
 acsResourceId=$(az deployment sub show --name "$DEPLOY_NAME" --query 'properties.outputs.acsResourceId.value' -o tsv)
 
-echo "🛠️ Patching ACS resource to link email domain to ACS..."
+echo "🔨 Patching ACS resource to link email domain to ACS..."
 
 az rest --method patch \
   --url "${acsResourceId}?api-version=2021-10-01-preview" \

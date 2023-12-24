@@ -14,6 +14,7 @@ param kind string = 'web'
 
 // Set these if the registry requires auth 
 param registryUser string = ''
+@secure()
 param registryPassword string = ''
 
 // Optional managed identity settings
