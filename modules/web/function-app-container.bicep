@@ -111,7 +111,8 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
   properties: {
     serverFarmId: servicePlanId != '' ? servicePlanId : null
     managedEnvironmentId: containerAppsEnvId != '' ? containerAppsEnvId : null
-    reserved: true
+    // No idea why but has to be true for most containerized functions but false for container apps!
+    reserved: containerAppsEnvId != '' ? false : true
     httpsOnly: true
     siteConfig: {
       appSettings: appSettingsMerged
