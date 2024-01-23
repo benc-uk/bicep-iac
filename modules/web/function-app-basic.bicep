@@ -2,15 +2,17 @@
 // A module to deploy a non-containerized Function App, i.e. for code deployment
 // ===============================================================================
 
-param name string = resourceGroup().name
-param location string = resourceGroup().location
-param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
-param servicePlanId string
-param appSettings array = []
-
 @description('Runtime language, e.g. dotnet, node, python')
 @allowed([ 'dotnet', 'node', 'python', 'java', 'dotnet-isolated' ])
 param runtime string
+
+@description('Resource ID of the App Service Plan')
+param servicePlanId string
+
+param name string = resourceGroup().name
+param location string = resourceGroup().location
+param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
+param appSettings array = []
 
 // Function app settings
 param functionsVersion int = 4
@@ -45,7 +47,7 @@ var functionAppSettings = [
   }
   {
     name: 'FUNCTIONS_WORKER_RUNTIME'
-    value: 'dotnet'
+    value: runtime
   }
 ]
 
