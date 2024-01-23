@@ -8,6 +8,10 @@ param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
 param servicePlanId string
 param appSettings array = []
 
+@description('Runtime language, e.g. dotnet, node, python')
+@allowed([ 'dotnet', 'node', 'python', 'java', 'dotnet-isolated' ])
+param runtime string
+
 // Function app settings
 param functionsVersion int = 4
 param storageAccountName string
@@ -38,6 +42,10 @@ var functionAppSettings = [
   {
     name: 'FUNCTIONS_EXTENSION_VERSION'
     value: '~${functionsVersion}'
+  }
+  {
+    name: 'FUNCTIONS_WORKER_RUNTIME'
+    value: 'dotnet'
   }
 ]
 
