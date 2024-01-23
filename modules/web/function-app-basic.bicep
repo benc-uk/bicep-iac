@@ -84,7 +84,6 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
 
     siteConfig: {
-      alwaysOn: true
       appSettings: appSettingsMerged
       linuxFxVersion: linuxFxVersion != '' ? linuxFxVersion : null
     }
