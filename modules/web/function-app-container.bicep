@@ -1,6 +1,8 @@
 // ============================================================================================
 // A module to deploy containerised Function App 
-// Supports deploying to a regaular old App Service Plan or to new shiny Azure Container Apps
+// Supports deploying to both:
+//  - Regular old App Service Plan (Linux)
+//  - Shiny new Azure Container Apps (Preview)
 // ============================================================================================
 
 param name string = resourceGroup().name
@@ -48,14 +50,14 @@ var functionAppSettings = [
     name: 'AzureWebJobsStorage'
     value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccountKey}'
   }
-  {
-    name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-    value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccountKey}'
-  }
-  {
-    name: 'WEBSITE_CONTENTSHARE'
-    value: 'funcapp-${name}'
-  }
+  // {
+  //   name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+  //   value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccountKey}'
+  // }
+  // {
+  //   name: 'WEBSITE_CONTENTSHARE'
+  //   value: 'funcapp-${name}'
+  // }
   {
     name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
     value: appInsightsKey
@@ -65,16 +67,8 @@ var functionAppSettings = [
     value: '~${functionsVersion}'
   }
   {
-    name: 'FUNCTION_APP_EDIT_MODE'
-    value: 'readOnly'
-  }
-  {
     name: 'DOCKER_CUSTOM_IMAGE_NAME'
     value: '${registry}/${repo}:${tag}'
-  }
-  {
-    name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
-    value: 'false'
   }
   {
     name: 'DOCKER_REGISTRY_SERVER_URL'
@@ -126,7 +120,6 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
       appSettings: appSettingsMerged
       linuxFxVersion: 'DOCKER|${registry}/${repo}:${tag}'
     }
-
   }
 }
 
