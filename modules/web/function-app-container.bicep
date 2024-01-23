@@ -117,6 +117,7 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
       appSettings: appSettingsMerged
       linuxFxVersion: 'DOCKER|${registry}/${repo}:${tag}'
     }
+
   }
 }
 
