@@ -124,5 +124,6 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
 // ===== Outputs ==============================================================
 
 output resourceId string = functionApp.id
+output name string = resourceName
 output hostname string = functionApp.properties.hostNames[0]
 output systemAssignedIdentityPrincipalId string = (systemAssignedIdentity ? functionApp.identity.principalId : 'none')
