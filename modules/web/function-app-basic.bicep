@@ -6,13 +6,14 @@
 @allowed([ 'dotnet', 'node', 'python', 'java', 'dotnet-isolated' ])
 param runtime string
 
-@description('Resource ID of the App Service Plan')
+@description('Resource ID of the App Service Plan to deploy the Function App to')
 param servicePlanId string
 
 param name string = resourceGroup().name
 param location string = resourceGroup().location
 param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
 param appSettings array = []
+param linuxFxVersion string = ''
 
 // Function app settings
 param functionsVersion int = 4
@@ -79,6 +80,7 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
     siteConfig: {
       appSettings: appSettingsMerged
+      linuxFxVersion: linuxFxVersion != '' ? null : linuxFxVersion
     }
   }
 }
