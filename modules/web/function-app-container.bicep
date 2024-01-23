@@ -6,8 +6,14 @@
 param name string = resourceGroup().name
 param location string = resourceGroup().location
 param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
+
+// NOTE! User MUST supply either a service plan or container apps environment
+@description('Service plan resource-id if deploying to App Service Plan')
 param servicePlanId string = ''
+
+@description('Container Apps environment resource-id if deploying to Container Apps')
 param containerAppsEnvId string = ''
+
 param registry string = 'ghcr.io'
 param repo string
 param tag string = 'latest'
@@ -33,8 +39,9 @@ param systemAssignedIdentity bool = false
 
 // ===== Variables ============================================================
 
-var kind = 'functionapp,linux,container'
+var kind = 'functionapp,linux,container,${isContainerApp ? 'azurecontainerapps' : ''}'
 var resourceName = '${name}${suffix}'
+var isContainerApp = containerAppsEnvId != ''
 
 var functionAppSettings = [
   {
@@ -110,9 +117,10 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
 
   properties: {
     serverFarmId: servicePlanId != '' ? servicePlanId : null
-    managedEnvironmentId: containerAppsEnvId != '' ? containerAppsEnvId : null
+    managedEnvironmentId: isContainerApp ? containerAppsEnvId : null
+
     // No idea why but has to be true for most containerized functions but false for container apps!
-    reserved: containerAppsEnvId != '' ? false : true
+    reserved: isContainerApp ? false : true
     httpsOnly: true
     siteConfig: {
       appSettings: appSettingsMerged
