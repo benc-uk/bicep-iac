@@ -19,4 +19,5 @@ These are example templates using the above modules:
 - [Linux VM](./templates/linux-vm)
 - [Azure Web Apps](./templates/webapp)
 - [Rancher Kubernetes Engine](./templates/rke2)
-- [Azure Communcation Services for Email](./templates/acs-email)
+- [Azure Communication Services for Email](./templates/acs-email)
+- [PostgreSQL CosmosDB](./templates/postgres)
