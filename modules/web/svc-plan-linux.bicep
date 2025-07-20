@@ -28,7 +28,7 @@ param instanceCount int = 1
 
 // ===== Modules & Resources ==================================================
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2021-01-15' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: name
   location: location
   kind: 'linux'

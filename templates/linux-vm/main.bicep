@@ -41,7 +41,6 @@ resource resGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 
 module subnetNsg '../../modules/network/nsg.bicep' = {
   scope: resGroup
-  name: 'subnetNsg'
   params: {
     sourceAddress: allowSshFromAddress
     openPorts: [
@@ -52,7 +51,6 @@ module subnetNsg '../../modules/network/nsg.bicep' = {
 
 module network '../../modules/network/network.bicep' = {
   scope: resGroup
-  name: 'network'
   params: {
     nsgId: subnetNsg.outputs.nsgId
   }
@@ -60,7 +58,6 @@ module network '../../modules/network/network.bicep' = {
 
 module linuxVm '../../modules/compute/linux-vm.bicep' = {
   scope: resGroup
-  name: 'linuxVm'
 
   params: {
     name: name
@@ -76,7 +73,6 @@ module linuxVm '../../modules/compute/linux-vm.bicep' = {
 
 module managedIdentity '../../modules/identity/user-managed.bicep' = if (assignManagedIdentity) {
   scope: resGroup
-  name: 'managedIdentity'
 }
 
 // ===== Outputs ==========================az==================================

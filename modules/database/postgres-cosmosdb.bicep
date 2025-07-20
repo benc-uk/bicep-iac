@@ -6,7 +6,7 @@ param name string = resourceGroup().name
 param location string = resourceGroup().location
 
 // Remove for resources that DONT need unique names
-//param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
+param suffix string = '-${substring(uniqueString(resourceGroup().name), 0, 5)}'
 
 @description('PostgreSQL version to deploy')
 @allowed([
@@ -23,12 +23,15 @@ param adminPassword string
 @description('Database name to create')
 param databaseName string = 'exampledb'
 
+@description('Addtional IP address to allow access to the PostgreSQL server')
+param allowAccessForIP string = ''
+
 // ===== Variables ============================================================
 
 // ===== Modules & Resources ==================================================
 
 resource postgres 'Microsoft.DBforPostgreSQL/serverGroupsv2@2023-03-02-preview' = {
-  name: name
+  name: '${name}${suffix}'
   location: location
 
   properties: {
@@ -54,14 +57,27 @@ resource postgres 'Microsoft.DBforPostgreSQL/serverGroupsv2@2023-03-02-preview' 
 resource postgresAllowAzure 'Microsoft.DBforPostgreSQL/serverGroupsv2/firewallRules@2023-03-02-preview' = {
   parent: postgres
   name: 'allow-azure-services'
+
   properties: {
     startIpAddress: '0.0.0.0'
     endIpAddress: '0.0.0.0'
   }
 }
 
+// Firewall rule to allow access from a specific IP address
+resource postgresAllowIP 'Microsoft.DBforPostgreSQL/serverGroupsv2/firewallRules@2023-03-02-preview' = if (allowAccessForIP != '') {
+  parent: postgres
+  name: 'allow-ip'
+
+  properties: {
+    startIpAddress: allowAccessForIP
+    endIpAddress: allowAccessForIP
+  }
+}
+
 // ===== Outputs ==============================================================
 
 output resourceId string = postgres.id
+output name string = postgres.name
 output host string = postgres.properties.serverNames[0].fullyQualifiedDomainName
 output dsn string = 'host=${postgres.properties.serverNames[0].fullyQualifiedDomainName} port=5432 dbname=${databaseName} user=citus sslmode=require'
