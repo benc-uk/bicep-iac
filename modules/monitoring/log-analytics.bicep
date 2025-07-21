@@ -36,4 +36,4 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
 output id string = logWorkspace.id
 output name string = logWorkspace.name
 output customerId string = logWorkspace.properties.customerId
-output sharedKey string = logWorkspace.listKeys().primarySharedKey
+//output sharedKey string = logWorkspace.listKeys().primarySharedKey
